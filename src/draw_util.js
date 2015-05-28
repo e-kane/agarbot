@@ -1,3 +1,15 @@
+// ==UserScript==
+// @name        AgarBot
+// @namespace   ekane
+// @description Plays Agar
+// @include     http://agar.io/
+// @version     1
+// @grant       none
+// @author      ekane
+// @require		agarbot.js
+// ==/UserScript==
+
+
 function drawPoint(x_1, y_1, drawColor) {
     if (!toggleDraw) {
         var x1 = ((x_1 - I) * k) + l/2;

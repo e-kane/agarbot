@@ -7,6 +7,7 @@
 // @grant       none
 // @author      ekane
 // @require		agarbot.js
+// @require		draw_util.js
 // ==/UserScript==
 
 /***************************************************************
@@ -303,10 +304,9 @@
 	/*******************************************************
 	 * Bot is called here on each interrupt
 	 *******************************************************/
-	if(toggleBot){
-		findDestination();
-	}
-      
+	var moves = agarbot_move(P, Q, m, v);
+    P = moves[0]; Q = moves[1];
+    
     if (null != h && h.readyState == h.OPEN) {
       var a = N - l / 2,
       b = O - r / 2;
@@ -409,9 +409,7 @@
     /*****************************************
      * Draw The Markers Used by The Bot
      *****************************************/
-    if (toggleDraw) {
-    	drawMarkers(dPoints, lines, d)
-    }
+     drawMarkers(dPoints, lines, d); // d is the canvas context
   }
   function Fa() {
     if (ia && fa.width) {
@@ -485,14 +483,10 @@
    else if (g.top != g) g.top.location = 'http://agar.io/';
    else {
     var $,
-    toggleBot = false,
-    toggleDraw = false,
     splitted = false,
     splitting = false,
     virusBait = false,
     tempPoint = [0, 0, 1],
-    dPoints = [],
-    lines = [],
     originalName,
     sessionScore = 0,
     d,

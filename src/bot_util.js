@@ -1,3 +1,14 @@
+// ==UserScript==
+// @name        AgarBot
+// @namespace   ekane
+// @description Plays Agar
+// @include     http://agar.io/
+// @version     1
+// @grant       none
+// @author      ekane
+// @require		agarbot.js
+// ==/UserScript==
+
 function computeDistance(x1, y1, x2, y2) {
 	var xdis = x1 - x2; // <--- FAKE AmS OF COURSE!
 	var ydis = y1 - y2;
@@ -30,8 +41,7 @@ function inverseSlope(x1, y1, x2, y2) {
 }
 
 //Given a slope and an offset, returns two points on that line.
-function pointsOnLine(slope, useX, useY) {
-    
+function pointsOnLine(slope, useX, useY) {  
     var b = useY - slope * useX;
     
     return [[useX - 100, slope * (useX - 100) + b], [useX + 100, slope * (useX + 100) + b]];
@@ -45,7 +55,6 @@ function isSideLine(a, b, c) {
     }
     return false;
 }
-
 
 function getListmasedOnFunction(booleanFunction, listToUse) {
     var dotList = [];
