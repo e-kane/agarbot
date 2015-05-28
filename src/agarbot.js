@@ -23,39 +23,39 @@ var lines		= []; 			// list of lines to be drawn
  ******************************************************************************/
 
 //TODO: Make it only go to a virus if it's big enough. If it shrinks, it shouldn't only grab a single dot and go back in.
-function getAllNiceViruses() {
+function getAllNiceViruses(userObjList, allObjList) {
     var dotList = [];
     
-    if (m.length == 1) {
+    if (userObjList.length == 1) {
         dotList = getListmasedOnFunction(function (element){
-            if (v[element].isVirus && (v[element].size *1.10 <= m[0].size) && v[element].size * 1.15 >= m[0].size) {
+            if (allObjList[element].isVirus && (allObjList[element].size *1.10 <= userObjList[0].size) && allObjList[element].size * 1.15 >= userObjList[0].size) {
                     return true;
             }
             return false;
-        }, v);
+        }, allObjList);
     }
 
     
     return dotList;
 }
 
-function getAllThreats() {
+function getAllThreats(userObjList, allObjList) {
     var dotList = [];
     
     dotList = getListmasedOnFunction(function (element){
         var isMe = false;
         
-        for (var i = 0; i < m.length; i++) {
-            if (v[element].id == m[i].id) {
+        for (var i = 0; i < userObjList.length; i++) {
+            if (allObjList[element].id == userObjList[i].id) {
                 isMe = true;
                 break;
             }
         }
         
-        for (var i = 0; i < m.length; i++) {
-            if (!isMe && (!v[element].isVirus && (v[element].size >= m[i].oSize * 1.15))) {
+        for (var i = 0; i < userObjList.length; i++) {
+            if (!isMe && (!allObjList[element].isVirus && (allObjList[element].size >= userObjList[i].oSize * 1.15))) {
                 return true;
-            } else if (v[element].isVirus && (v[element].size * 1.15 <= m[i].oSize)) {
+            } else if (allObjList[element].isVirus && (allObjList[element].size * 1.15 <= userObjList[i].oSize)) {
                 return true;
             }
             return false;
@@ -65,22 +65,22 @@ function getAllThreats() {
     return dotList;
 }
 
-function getAllFood() {
+function getAllFood(userObjList, allObjList) {
     var elementList = [];
     var dotList = [];
     
     elementList = getListmasedOnFunction(function (element){
         var isMe = false;
         
-        for (var i = 0; i < m.length; i++) {
-            if (v[element].id == m[i].id) {
+        for (var i = 0; i < userObjList.length; i++) {
+            if (allObjList[element].id == userObjList[i].id) {
                 isMe = true;
                 break;
             }
         }
         
-        for (var i = 0; i < m.length; i++) {
-            if (!isMe && !v[element].isVirus && (v[element].size * 1.25 <= m[i].size)  || (v[element].size <= 11)){return true;} else{return false;}
+        for (var i = 0; i < userObjList.length; i++) {
+            if (!isMe && !allObjList[element].isVirus && (allObjList[element].size * 1.25 <= userObjList[i].size)  || (allObjList[element].size <= 11)){return true;} else{return false;}
         }
     }, v);
     
@@ -112,26 +112,26 @@ function clusterFood(foodList, blobSize) {
     return clusters;
 }
 
-function agarbot_move(userMoveX, userMoveY, m, v) {
+function agarbot_move(userMoveX, userMoveY, userObjList, allObjList) {
     dPoints = [];
     lines = [];
     
     var tempMoveX = userMoveX;
     var tempMoveY = userMoveY;
     
-    if (m[0] != null) {
+    if (userObjList[0] != null) {
         var allPossibleFood = null;
-        allPossibleFood = getAllFood(); // #1
+        allPossibleFood = getAllFood(userObjList, allObjList); // #1
         
-        var allPossibleThreats = getAllThreats();
+        var allPossibleThreats = getAllThreats(userObjList, allObjList);
         
-        var allPossibleNiceViruses = getAllNiceViruses();
+        var allPossibleNiceViruses = getAllNiceViruses(userObjList, allObjList);
         var closestNiceViruse = null;
         if (allPossibleNiceViruses.length != 0) {
-            closestNiceViruse = [allPossibleNiceViruses[0], computeDistance(allPossibleNiceViruses[0].x, allPossibleNiceViruses[0].y, m[0].x, m[0].y)];
+            closestNiceViruse = [allPossibleNiceViruses[0], computeDistance(allPossibleNiceViruses[0].x, allPossibleNiceViruses[0].y, userObjList[0].x, userObjList[0].y)];
         
             for (var i = 1; i < allPossibleNiceViruses.length; i++) {
-                var testD = computeDistance(allPossibleNiceViruses[i].x, allPossibleNiceViruses[i].y, m[0].x, m[0].y)
+                var testD = computeDistance(allPossibleNiceViruses[i].x, allPossibleNiceViruses[i].y, userObjList[0].x, userObjList[0].y)
                 if (testD < closestNiceViruse[1]) {
                     closestNiceViruse = [allPossibleNiceViruses[i], testD];
                 }
@@ -154,10 +154,10 @@ function agarbot_move(userMoveX, userMoveY, m, v) {
         
         var isSafeSpot = true;
         
-        var clusterAllFood = clusterFood(allPossibleFood, m[0].oSize);
+        var clusterAllFood = clusterFood(allPossibleFood, userObjList[0].oSize);
         
         for (var i = 0; i < allPossibleThreats.length; i++) {
-            var tempD = computerDistanceFromCircleEdge(m[0].x, m[0].y, allPossibleThreats[i].x, allPossibleThreats[i].y, allPossibleThreats[i].size);
+            var tempD = computerDistanceFromCircleEdge(userObjList[0].x, userObjList[0].y, allPossibleThreats[i].x, allPossibleThreats[i].y, allPossibleThreats[i].size);
             
             if (closestThreatIndex != null) {
                 if (closestThreatD > tempD) {
@@ -171,8 +171,8 @@ function agarbot_move(userMoveX, userMoveY, m, v) {
                 closestThreatD = tempD;
             }
             
-            var ratioX =  tempD / (allPossibleThreats[i].x - m[0].x);
-            var ratioY =  tempD / (allPossibleThreats[i].y - m[0].y);
+            var ratioX =  tempD / (allPossibleThreats[i].x - userObjList[0].x);
+            var ratioY =  tempD / (allPossibleThreats[i].y - userObjList[0].y);
             
             var offsetX = 0;
             var offsetY = 0;
@@ -195,7 +195,7 @@ function agarbot_move(userMoveX, userMoveY, m, v) {
             var escape = 5;
             var escapeMid = 3;
             
-            iSlope = inverseSlope(allPossibleThreats[i].x, allPossibleThreats[i].y, m[0].x, m[0].y);
+            iSlope = inverseSlope(allPossibleThreats[i].x, allPossibleThreats[i].y, userObjList[0].x, userObjList[0].y);
             
             var sidePoints = pointsOnLine(iSlope, allPossibleThreats[i].x, allPossibleThreats[i].y);
             
@@ -261,7 +261,7 @@ function agarbot_move(userMoveX, userMoveY, m, v) {
                 offsetEscapeRightY = offsetEscapeY + (allPossibleThreats[i].size / ratioLeftY * escapeMid);
             }
             
-            if (m[0].x < allPossibleThreats[i].x && m[0].y > allPossibleThreats[i].y) {
+            if (userObjList[0].x < allPossibleThreats[i].x && userObjList[0].y > allPossibleThreats[i].y) {
                 var c = offsetRightX;
                 offsetRightX = offsetLeftX;
                 offsetLeftX = c;
@@ -278,7 +278,7 @@ function agarbot_move(userMoveX, userMoveY, m, v) {
                 offsetEscapeRightY = offsetEscapeLeftY;
                 offsetEscapeLeftY = f;
                 //console.log("Swap");
-            } else if (m[0].x > allPossibleThreats[i].x && m[0].y > allPossibleThreats[i].y)
+            } else if (userObjList[0].x > allPossibleThreats[i].x && userObjList[0].y > allPossibleThreats[i].y)
             {
                 var c = offsetRightX;
                 offsetRightX = offsetLeftX;
@@ -311,7 +311,7 @@ function agarbot_move(userMoveX, userMoveY, m, v) {
             
             threatLine = pointsOnLine(iSlope, offsetX, offsetY);
             
-            drawLine(allPossibleThreats[i].x, allPossibleThreats[i].y, m[0].x, m[0].y, 3);
+            drawLine(allPossibleThreats[i].x, allPossibleThreats[i].y, userObjList[0].x, userObjList[0].y, 3);
             
             
             drawLine(threatLineLeft[0][0], threatLineLeft[0][1], threatLineLeft[1][0], threatLineLeft[1][1], 0);
@@ -337,8 +337,8 @@ function agarbot_move(userMoveX, userMoveY, m, v) {
             allThreatLinesmool.push([badSideLeft, badSideRight]);
             
             isSafeSpot = (
-                    badSideLeft != isSideLine(threatLineLeft[0], threatLineLeft[1], [m[0].x, m[0].y]) &&
-                    badSideRight != isSideLine(threatLineRight[0], threatLineRight[1], [m[0].x, m[0].y]) && isSafeSpot
+                    badSideLeft != isSideLine(threatLineLeft[0], threatLineLeft[1], [userObjList[0].x, userObjList[0].y]) &&
+                    badSideRight != isSideLine(threatLineRight[0], threatLineRight[1], [userObjList[0].x, userObjList[0].y]) && isSafeSpot
             );
             
             var removeClusterList = [];
@@ -367,7 +367,7 @@ function agarbot_move(userMoveX, userMoveY, m, v) {
         }
         
         for (var i = 0; i < clusterAllFood.length; i++) {
-            clusterAllFood[i][2] = clusterAllFood[i][2] * 6 - computeDistance(clusterAllFood[i][0], clusterAllFood[i][1], m[0].ox, m[0].oy);
+            clusterAllFood[i][2] = clusterAllFood[i][2] * 6 - computeDistance(clusterAllFood[i][0], clusterAllFood[i][1], userObjList[0].ox, userObjList[0].oy);
             if (!toggle) {
                 drawPoint(clusterAllFood[i][0], clusterAllFood[i][1], 1);
             }
@@ -388,9 +388,9 @@ function agarbot_move(userMoveX, userMoveY, m, v) {
              * #4 Find closest food after the filter.
              */
             
-            if (closestNiceViruse != null && closestNiceViruse[0].size * 1.15 <= m[0].size) {
-                for (var i = 0; i < m.length; i++) {
-                    drawLine(m[i].ox, m[i].oy, closestNiceViruse[0].x, closestNiceViruse[0].y, 5);
+            if (closestNiceViruse != null && closestNiceViruse[0].size * 1.15 <= userObjList[0].size) {
+                for (var i = 0; i < userObjList.length; i++) {
+                    drawLine(userObjList[i].ox, userObjList[i].oy, closestNiceViruse[0].x, closestNiceViruse[0].y, 5);
                 }
                 
                 virusmait = true;
@@ -398,8 +398,8 @@ function agarbot_move(userMoveX, userMoveY, m, v) {
                 tempMoveX = closestNiceViruse[0].x;
                 tempMoveY = closestNiceViruse[0].y;
             } else {
-                for (var i = 0; i < m.length; i++) {
-                    drawLine(m[i].ox, m[i].oy, biggestCluster[0], biggestCluster[1], 1);
+                for (var i = 0; i < userObjList.length; i++) {
+                    drawLine(userObjList[i].ox, userObjList[i].oy, biggestCluster[0], biggestCluster[1], 1);
                 }
                 
                 virusmait = false;
@@ -412,7 +412,7 @@ function agarbot_move(userMoveX, userMoveY, m, v) {
             //console.log("X: " + P + " Y: " + Q);
             
             if (!toggle) {
-              if (m.length > 1 && splitted) {
+              if (userObjList.length > 1 && splitted) {
                   splitted = false;
                   tempMoveX = biggestCluster[0];
                   tempMoveY = biggestCluster[1];
@@ -420,19 +420,19 @@ function agarbot_move(userMoveX, userMoveY, m, v) {
               if (splitting) {
                   tempMoveX = biggestCluster[0];
                   tempMoveY = biggestCluster[1];
-                  A(17);
+                  A(17); //!!! FIX THIS!!!
                   splitting = false;
                   splitted = true;
               }
               
-              if (biggestCluster[2] * 2.5 < m[0].size && biggestCluster[2] > m[0].size / 5 &&  biggestCluster[2] > 11 && !splitted && !splitting) {
-                  drawLine(m[0].x, m[0].y, biggestCluster[0], biggestCluster[1], 4);
+              if (biggestCluster[2] * 2.5 < userObjList[0].size && biggestCluster[2] > userObjList[0].size / 5 &&  biggestCluster[2] > 11 && !splitted && !splitting) {
+                  drawLine(userObjList[0].x, userObjList[0].y, biggestCluster[0], biggestCluster[1], 4);
                   
                   var worthyTargetDistance = computeDistance(m[0].x, m[0].y, biggestCluster[0], biggestCluster[1]);
                   
                   console.log("I want to split.");
                   
-                  if ((worthyTargetDistance < m[0].size * 3) && m.length == 1) {
+                  if ((worthyTargetDistance < userObjList[0].size * 3) && userObjList.length == 1) {
                       tempMoveX = biggestCluster[0];
                       tempMoveY = biggestCluster[1];
                       splitting = true;
@@ -452,7 +452,7 @@ function agarbot_move(userMoveX, userMoveY, m, v) {
                 tempMoveY = allFallbackPointsRight[closestThreatIndex][1];
             }
             
-            drawLine(m[0].x, m[0].y, tempMoveX, tempMoveY, 6);
+            drawLine(userObjList[0].x, userObjList[0].y, tempMoveX, tempMoveY, 6);
         }
         
         drawPoint(tempPoint[0], tempPoint[1], tempPoint[2]);
