@@ -6,7 +6,6 @@
 // @version     1
 // @grant       none
 // @author      ekane
-// @require		agarbot.js
 // ==/UserScript==
 
 function computeDistance(x1, y1, x2, y2) {
@@ -60,7 +59,7 @@ function getListmasedOnFunction(booleanFunction, listToUse) {
     var dotList = [];
     Object.keys(listToUse).forEach(function (element, index) {
         if (booleanFunction(element)){
-            dotList.push(v[element]);
+            dotList.push(listToUse[element]);
         }
     });
     

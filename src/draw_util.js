@@ -6,7 +6,6 @@
 // @version     1
 // @grant       none
 // @author      ekane
-// @require		agarbot.js
 // ==/UserScript==
 
 
