@@ -16,11 +16,24 @@
  * 	main_out.js modified slightly to plug in AI
  ***************************************************************/ 
 
+/******************************************************************************
+ * GLOBAL VARIABLE DECLARTIONS START
+ ******************************************************************************/
+// Map Boundaries
  var   S = 0;
  var   T = 0;
  var   U = 10000;
  var   V = 10000;
 
+ // Variables For Draw Script
+ var I = 0;
+ var J = 0;
+ var k = 1;
+ var l = 0;
+ var r = 0;
+ /******************************************************************************
+  * GLOBAL VARIABLE DECLARTIONS END
+  ******************************************************************************/
 
 (function (g, q) {
   function wa() {
@@ -416,7 +429,7 @@
     /*****************************************
      * Draw The Markers Used by The Bot
      *****************************************/
-     //drawMarkers(dPoints, lines, d); // d is the canvas context
+     drawMarkers(dPoints, lines, d); // d is the canvas context
   }
   function Fa() {
     if (ia && fa.width) {
@@ -489,13 +502,12 @@
   if ('agar.io' != g.location.hostname && 'localhost' != g.location.hostname && '10.10.2.13' != g.location.hostname) g.location = 'http://agar.io/';
    else if (g.top != g) g.top.location = 'http://agar.io/';
    else {
+    console.debug("init");
     var $,
     originalName,
     sessionScore = 0,
     d,
     z,
-    l,
-    r,
     F = null,
     h = null,
     s = 0,
@@ -519,7 +531,6 @@
     Da = 0,
     D = 0,
     L = null,
-    k = 1,
     G = null,
     ua = !0,
     Y = !0,
@@ -528,8 +539,6 @@
     M = 0,
     ea = !1,
     va = !1,
-    I = s = ~~((S + U) / 2),
-    J = t = ~~((T + V) / 2),
     K = 1,
     H = '',
     x = null,
@@ -541,6 +550,15 @@
     ],
     ia = 'ontouchstart' in g && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
     fa = new Image;
+    
+    /*******************************************************
+     * Three Variables Moved To Global Scope for Drawing
+     *******************************************************/
+    I = s = ~~((S + U) / 2);
+    J = t = ~~((T + V) / 2);
+    k = 1;
+    
+    
     fa.src = 'img/split.png';
     var R = null;
     g.setNick = function (a) {

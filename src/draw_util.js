@@ -10,6 +10,7 @@
 
 
 function drawPoint(x_1, y_1, drawColor) {
+    //console.debug("draw point");
     if (!toggleDraw) {
         var x1 = ((x_1 - I) * k) + l/2;
         var y1 = ((y_1 - J) * k) + r/2;
@@ -18,6 +19,7 @@ function drawPoint(x_1, y_1, drawColor) {
 }
 
 function drawLine(x_1, y_1, x_2, y_2, drawColor) {
+    //console.debug("draw lines");
     if (!toggleDraw) {
         var x1 = ((x_1 - I) * k) + l/2;
         var y1 = ((y_1 - J) * k) + r/2;
@@ -32,11 +34,12 @@ function drawLine(x_1, y_1, x_2, y_2, drawColor) {
  *  Draws Bot Markers on The Canvas
  *************************************************/
 function drawMarkers(dPoints, lines, context) {
+    
     for (var i = 0; i < dPoints.length; i++) {
         var radius = 10;
         
         context.beginPath();
-        d.arc(dPoints[i][0], dPoints[i][1], radius, 0, 2 * Math.PI, false);
+        context.arc(dPoints[i][0], dPoints[i][1], radius, 0, 2 * Math.PI, false);
 
         if (dPoints[i][2] == 0) {
         	context.fillStyle = "black";
@@ -58,7 +61,7 @@ function drawMarkers(dPoints, lines, context) {
         context.stroke();
     }
     context.lineWidth = 1;
-    
+    //console.debug("drawMarkers loop1");
     for(var i = 0; i < lines.length; i++) {
     	context.beginPath();
         

@@ -19,9 +19,9 @@ var lines		= []; 			// list of lines to be drawn
 
 
 var splitted = false;
-var    splitting = false;
-var   virusBait = false;
-var   tempPoint = [0, 0, 1];
+var splitting = false;
+var virusBait = false;
+var tempPoint = [0, 0, 1];
 /******************************************************************************
  * GLOBAL VARIABLE DECLARTIONS END
  ******************************************************************************/
@@ -312,11 +312,11 @@ function agarbot_move(userMoveX, userMoveY, userObjList, allObjList) {
             }
        
             
-           // drawPoint(offsetX, offsetY, 2);
+            drawPoint(offsetX, offsetY, 2);
             
-            //drawPoint(offsetLeftX, offsetLeftY, 3);
-            //drawPoint(offsetRightX, offsetRightY, 3);
-            
+            drawPoint(offsetLeftX, offsetLeftY, 3);
+            drawPoint(offsetRightX, offsetRightY, 3);
+            console.debug("voov draw");
             var SSlope = inverseSlope(allPossibleThreats[i].x, allPossibleThreats[i].y, sidePoints[0][0], sidePoints[0][1]);
             
             threatLineLeft = [[offsetLeftX, offsetLeftY], [offsetX, offsetY]];
@@ -324,16 +324,16 @@ function agarbot_move(userMoveX, userMoveY, userObjList, allObjList) {
             
             threatLine = pointsOnLine(iSlope, offsetX, offsetY);
             
-            //drawLine(allPossibleThreats[i].x, allPossibleThreats[i].y, userObjList[0].x, userObjList[0].y, 3);
+            drawLine(allPossibleThreats[i].x, allPossibleThreats[i].y, userObjList[0].x, userObjList[0].y, 3);
             
             
-            //drawLine(threatLineLeft[0][0], threatLineLeft[0][1], threatLineLeft[1][0], threatLineLeft[1][1], 0);
-            //drawLine(threatLineRight[0][0], threatLineRight[0][1], threatLineRight[1][0], threatLineRight[1][1], 0);
+            drawLine(threatLineLeft[0][0], threatLineLeft[0][1], threatLineLeft[1][0], threatLineLeft[1][1], 0);
+            drawLine(threatLineRight[0][0], threatLineRight[0][1], threatLineRight[1][0], threatLineRight[1][1], 0);
             
             allThreatLines.push([threatLineLeft, threatLineRight]);
             
-            //drawPoint(offsetEscapeLeftX, offsetEscapeLeftY, 4);
-           // drawPoint(offsetEscapeRightX, offsetEscapeRightY, 4);
+            drawPoint(offsetEscapeLeftX, offsetEscapeLeftY, 4);
+            drawPoint(offsetEscapeRightX, offsetEscapeRightY, 4);
 
             allFallbackPointsLeft.push([offsetEscapeLeftX, offsetEscapeLeftY]);
             allFallbackPointsRight.push([offsetEscapeRightX, offsetEscapeRightY]);
@@ -366,7 +366,7 @@ function agarbot_move(userMoveX, userMoveY, userObjList, allObjList) {
             }
             for (var j = removeClusterList.length - 1; j >= 0; j--) {
                 if (!toggleBot) {
-                    //drawPoint(clusterAllFood[j][0], clusterAllFood[j][1], 0);
+                    drawPoint(clusterAllFood[j][0], clusterAllFood[j][1], 0);
                 }
                 clusterAllFood.splice(removeClusterList[j], 1);
             }
@@ -385,7 +385,7 @@ function agarbot_move(userMoveX, userMoveY, userObjList, allObjList) {
         for (var i = 0; i < clusterAllFood.length; i++) {
             clusterAllFood[i][2] = clusterAllFood[i][2] * 6 - computeDistance(clusterAllFood[i][0], clusterAllFood[i][1], userObjList[0].ox, userObjList[0].oy);
             if (!toggleBot) {
-                //drawPoint(clusterAllFood[i][0], clusterAllFood[i][1], 1);
+                drawPoint(clusterAllFood[i][0], clusterAllFood[i][1], 1);
             }
         }
         
@@ -409,7 +409,7 @@ function agarbot_move(userMoveX, userMoveY, userObjList, allObjList) {
             
             if (closestNiceViruse != null && closestNiceViruse[0].size * 1.15 <= userObjList[0].size) {
                 for (var i = 0; i < userObjList.length; i++) {
-                    //drawLine(userObjList[i].ox, userObjList[i].oy, closestNiceViruse[0].x, closestNiceViruse[0].y, 5);
+                    drawLine(userObjList[i].ox, userObjList[i].oy, closestNiceViruse[0].x, closestNiceViruse[0].y, 5);
                 }
                 
                 virusmait = true;
@@ -418,7 +418,7 @@ function agarbot_move(userMoveX, userMoveY, userObjList, allObjList) {
                 tempMoveY = closestNiceViruse[0].y;
             } else {
                 for (var i = 0; i < userObjList.length; i++) {
-                    //drawLine(userObjList[i].ox, userObjList[i].oy, biggestCluster[0], biggestCluster[1], 1);
+                    drawLine(userObjList[i].ox, userObjList[i].oy, biggestCluster[0], biggestCluster[1], 1);
                 }
                 
                 virusmait = false;
@@ -445,7 +445,7 @@ function agarbot_move(userMoveX, userMoveY, userObjList, allObjList) {
               }
               
               if (biggestCluster[2] * 2.5 < userObjList[0].size && biggestCluster[2] > userObjList[0].size / 5 &&  biggestCluster[2] > 11 && !splitted && !splitting) {
-                  //drawLine(userObjList[0].x, userObjList[0].y, biggestCluster[0], biggestCluster[1], 4);
+                  drawLine(userObjList[0].x, userObjList[0].y, biggestCluster[0], biggestCluster[1], 4);
                   
                   var worthyTargetDistance = computeDistance(userObjList[0].x, userObjList[0].y, biggestCluster[0], biggestCluster[1]);
                   
@@ -471,13 +471,13 @@ function agarbot_move(userMoveX, userMoveY, userObjList, allObjList) {
                 tempMoveY = allFallbackPointsRight[closestThreatIndex][1];
             }
             
-            //drawLine(userObjList[0].x, userObjList[0].y, tempMoveX, tempMoveY, 6);
+            drawLine(userObjList[0].x, userObjList[0].y, tempMoveX, tempMoveY, 6);
             console.debug("virusmait");
         }
         console.debug("voov");
 
    
-        //drawPoint(tempPoint[0], tempPoint[1], tempPoint[2]);
+        drawPoint(tempPoint[0], tempPoint[1], tempPoint[2]);
         tempPoint[2] = 1;
     }
     
