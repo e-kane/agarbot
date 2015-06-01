@@ -26,6 +26,37 @@ var tempPoint = [0, 0, 1];
  * GLOBAL VARIABLE DECLARTIONS END
  ******************************************************************************/
 
+/******************************************************************************
+ * AgarBot Singleton Class
+ ******************************************************************************/
+var AgarBot = new function()
+{
+	// Function for printing the 
+	this.printUserDebugInfo = function (userObjList, allObjList) {
+		for (var i = 0; i < userObjList.length; i++) {
+			console.debug("PLAYER  index:" + i + ";" + "size:" + userObjList[i].size + ";" + userObjList[i].oSize + ";" + userObjList[i].nSize + ";" +
+					"("+ userObjList[i].x + "," +userObjList[i].y +");" +
+					"("+ userObjList[i].ox + "," +userObjList[i].oy +");" +
+					"("+ userObjList[i].nx + "," +userObjList[i].ny +");"	
+			);
+		}
+		
+	    Object.keys(allObjList).forEach(function (element, index) {
+	        if(allObjList[element].isVirus) {
+				console.debug("VIRUS  index:" + element + ";" + "size:" + allObjList[element].size + ";" + allObjList[element].oSize + ";" + allObjList[element].nSize + ";" +
+						"("+ allObjList[element].x + ","  +allObjList[element].y +");" +
+						"("+ allObjList[element].ox + "," +allObjList[element].oy +");" +
+						"("+ allObjList[element].nx + "," +allObjList[element].ny +");"	
+				);
+	        }
+	    });
+	    		
+	};
+}
+
+
+
+
 //TODO: Make it only go to a virus if it's big enough. If it shrinks, it shouldn't only grab a single dot and go back in.
 function getAllNiceViruses(userObjList, allObjList) {
     var dotList = [];

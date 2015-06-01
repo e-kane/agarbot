@@ -324,9 +324,12 @@
 	/*******************************************************
 	 * Bot is called here on each interrupt
 	 *******************************************************/
-	 var moves = agarbot_move(P, Q, m, v);
-   P = moves[0]; Q = moves[1];
-    console.debug("move");
+	 //var moves = agarbot_move(P, Q, m, v);
+	 //P = moves[0]; Q = moves[1];
+	  AgarBot.printUserDebugInfo(m, v);
+
+	  console.debug("User Input (x, y):" + P + "," + Q);
+    //console.debug("move");
     if (null != h && h.readyState == h.OPEN) {
       var a = N - l / 2,
       b = O - r / 2;
