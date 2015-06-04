@@ -30,7 +30,7 @@
 	
 	function createPlayers() {
 		//the viruses
-		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
+		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 200, false, '#00FF00') );
 		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
 		
 		//the threats
@@ -171,14 +171,41 @@
 		createBDescGraph();
 	};
 	
+	
 	function createBDescGraph()
 	{
+		var basePHash = new Object();
+		var pHash = new Object();
+		
+		
+		// The Intersection Graph
+		var G = new Graph(pointHash);
+		// var Node Master List
+		var nodeMasterList = [];
+		var nodeSlaveList = {};
+		
+		
+		var refPoint = [me[0].x, me[0].y];
+		
+		//init the nodeMaster List
 		for (var i = 0; i < BDescList.length; i++){
+			var BDesc1 = BDescList[i];
 			
+			//store all the base points
+			for(var k = 0; k < BDesc1.u.length; k++){
+				var p = BDesc1.p[ (BDesc1.type == 1) ? 0 : k];
+				var nodeId = G.addNode(p, dist(p[0],p[1], refPoint[0], refPoint[1]));
+				nodeMasterList.push(nodeId);
+				nodeSlaveList[nodeId] = {};
+			}
+		}
+		
+		//Get all the Intersections and add the Vertices to Graph
+		for (var i = 0; i < BDescList.length; i++){
+			var BDesc1 = BDescList[i];
 			
 			for (var j = i+1; j < BDescList.length; j++){
 				
-				var BDesc1 = BDescList[i];
 				var BDesc2 = BDescList[j];
 
 				for(var k = 0; k < BDesc1.u.length; k++){
@@ -188,11 +215,37 @@
 					   var u = BDesc1.u[k];
 					   var v = BDesc2.u[l];
 					   
+					   var pId = G.nodeHash(p);
+					   var qId = G.nodeHash(q);
+					   
+					   var uId = pointHash(u);
+					   var vId = pointHash(v);
+					   
 					   var soln = solve2d(-u[0], v[0], p[0]-q[0], -u[1], v[1], p[1]-q[1]);
 					   
-					   if (typeof soln !== 'undefined'){
+					   if (isDefined(soln)){
 						   if(soln[0] >= 0 && soln[1] >= 0){
 							   var m = [p[0] + soln[0] * u[0], p[1] + soln[0] * u[1]];
+
+							   // add this point
+							   var s = soln[0];
+							   var t = soln[1];
+							   
+							   var mId = G.addNode(m, dist(m[0],m[1], refPoint[0], refPoint[1]));
+							   G.addEdge(pId, mId, s);
+							   G.addEdge(qId, mId, t);
+							   
+							   
+							   
+							   if(!isDefined(nodeSlaveList[pId][uId])){
+								   nodeSlaveList[pId][uId] = {};
+							   }
+							   nodeSlaveList[pId][uId][s] = mId;
+							   
+							   if(!isDefined(nodeSlaveList[qId][vId])){
+								   nodeSlaveList[qId][vId] = {};
+							   }
+							   nodeSlaveList[qId][vId][t] = mId;
 							   
 							   canvasCtx.fillStyle = '#000000';
 							   canvasCtx.beginPath();
@@ -210,17 +263,45 @@
 				if(BDesc1.p.length == 2){
 					var p = BDesc1.p[1];
 					var u = unitVec(BDesc1.p[0][0] - BDesc1.p[1][0], BDesc1.p[0][1] - BDesc1.p[1][1]);
+					
+					var uId = pointHash(u);
+					var vId = pointHash(v);
+					 
 					for(var l = 0; l < BDesc2.u.length; l++){
 						 var q = BDesc2.p[ (BDesc2.type == 1) ? 0 : l];	
 						 var v = BDesc2.u[l];
 						 
+						 var pId = G.nodeHash(p);
+						 var qId = G.nodeHash(q);
+						 
+
+						   
 						 var soln = solve2d(-u[0], v[0], p[0]-q[0], -u[1], v[1], p[1]-q[1]);
 						 if (typeof soln !== 'undefined'){
 							   if(soln[0] >= 0 && soln[1] >= 0){
-								   //console.debug("soln");
 								   var m = [p[0] + soln[0] * u[0], p[1] + soln[0] * u[1]];
 								   if( m[0] <= Math.max(BDesc1.p[0][0], BDesc1.p[1][0]) && m[0] >= Math.min(BDesc1.p[0][0], BDesc1.p[1][0])
 								   && m[1] <= Math.max(BDesc1.p[0][1], BDesc1.p[1][1]) && m[1] >= Math.min(BDesc1.p[0][1], BDesc1.p[1][1])){
+									   
+									   var s = soln[0];
+									   var t = soln[1];
+								
+									   var mId = G.addNode(m, dist(m[0],m[1], refPoint[0], refPoint[1]));
+									   G.addEdge(pId, mId, s);
+									   G.addEdge(qId, mId, t);
+									   
+									   
+									   if(!isDefined(nodeSlaveList[pId][uId])){
+										   nodeSlaveList[pId][uId] = {};
+									   }
+									   nodeSlaveList[pId][uId][s] = mId;
+									   
+									   if(!isDefined(nodeSlaveList[qId][vId])){
+										   nodeSlaveList[qId][vId] = {};
+									   }
+									   nodeSlaveList[qId][vId][t] = mId;
+									   
+									   
 									   canvasCtx.fillStyle = '#000000';
 									   canvasCtx.beginPath();
 									   canvasCtx.arc(m[0], m[1], 25, 0, 2*Math.PI, false);
@@ -236,9 +317,18 @@
 				if(BDesc2.p.length == 2){
 					var p = BDesc2.p[1];
 					var u = unitVec(BDesc2.p[0][0] - BDesc2.p[1][0], BDesc2.p[0][1] - BDesc2.p[1][1]);
+					
+					var uId = pointHash(u);
+					var vId = pointHash(v);
+					   
 					for(var k = 0; k < BDesc1.u.length; k++){
 						 var q = BDesc1.p[ (BDesc1.type == 1) ? 0 : k];	
 						 var v = BDesc1.u[k];
+						 
+						 var pId = G.nodeHash(p);
+						 var qId = G.nodeHash(q);
+						 
+						 
 						 
 						 var soln = solve2d(-u[0], v[0], p[0]-q[0], -u[1], v[1], p[1]-q[1]);
 						 if (typeof soln !== 'undefined'){
@@ -246,6 +336,25 @@
 								   var m = [p[0] + soln[0] * u[0], p[1] + soln[0] * u[1]];
 								   if( m[0] <= Math.max(BDesc2.p[0][0], BDesc2.p[1][0]) && m[0] >= Math.min(BDesc2.p[0][0], BDesc2.p[1][0])
 								   && m[1] <= Math.max(BDesc2.p[0][1], BDesc2.p[1][1]) && m[1] >= Math.min(BDesc2.p[0][1], BDesc2.p[1][1])){
+									   
+									   var s = soln[0];
+									   var t = soln[1];
+									  
+									   var mId = G.addNode(m, dist(m[0],m[1], refPoint[0], refPoint[1]));
+									   G.addEdge(pId, mId, s);
+									   G.addEdge(qId, mId, t);
+									   
+									   
+									   if(!isDefined(nodeSlaveList[pId][uId])){
+										   nodeSlaveList[pId][uId] = {};
+									   }
+									   nodeSlaveList[pId][uId][s] = mId;
+									   
+									   if(!isDefined(nodeSlaveList[qId][vId])){
+										   nodeSlaveList[qId][vId] = {};
+									   }
+									   nodeSlaveList[qId][vId][t] = mId;
+									   
 									   canvasCtx.fillStyle = '#000000';
 									   canvasCtx.beginPath();
 									   canvasCtx.arc(m[0], m[1], 25, 0, 2*Math.PI, false);
@@ -265,6 +374,12 @@
 					var v = unitVec(BDesc2.p[0][0] - BDesc2.p[1][0], BDesc2.p[0][1] - BDesc2.p[1][1]);
 					var soln = solve2d(-u[0], v[0], p[0]-q[0], -u[1], v[1], p[1]-q[1]);
 					
+					 var pId = G.nodeHash(p);
+					 var qId = G.nodeHash(q);
+					 
+					 var uId = pointHash(u);
+					 var vId = pointHash(v);
+					 
 					 if (typeof soln !== 'undefined'){
 						   if(soln[0] >= 0 && soln[1] >= 0){
 							   var m = [p[0] + soln[0] * u[0], p[1] + soln[0] * u[1]];
@@ -272,6 +387,26 @@
 									   && m[1] <= Math.max(BDesc1.p[0][1], BDesc1.p[1][1]) && m[1] >= Math.min(BDesc1.p[0][1], BDesc1.p[1][1])
 									   && m[0] <= Math.max(BDesc2.p[0][0], BDesc2.p[1][0]) && m[0] >= Math.min(BDesc2.p[0][0], BDesc2.p[1][0])
 									   && m[1] <= Math.max(BDesc2.p[0][1], BDesc2.p[1][1]) && m[1] >= Math.min(BDesc2.p[0][1], BDesc2.p[1][1])){
+								   
+								   var s = soln[0];
+								   var t = soln[1];
+								   
+								   var mId = G.addNode(m, dist(m[0],m[1], refPoint[0], refPoint[1]));
+								   G.addEdge(pId, mId, s);
+								   G.addEdge(qId, mId, t);
+								   
+								   
+								   if(!isDefined(nodeSlaveList[pId][uId])){
+									   nodeSlaveList[pId][uId] = {};
+								   }
+								   nodeSlaveList[pId][uId][s] = mId;
+								   
+								   if(!isDefined(nodeSlaveList[qId][vId])){
+									   nodeSlaveList[qId][vId] = {};
+								   }
+								   nodeSlaveList[qId][vId][t] = mId;
+								   
+								   
 								   canvasCtx.fillStyle = '#000000';
 								   canvasCtx.beginPath();
 								   canvasCtx.arc(m[0], m[1], 25, 0, 2*Math.PI, false);
@@ -284,6 +419,114 @@
 				
 			}
 		}
+		
+		//clean up the edges (i.e. have everything adjacent connected)
+		for(var i = 0; i < nodeMasterList.length; i++){
+			var pId = nodeMasterList[i];
+			for( var uId in nodeSlaveList[pId]){
+				var keys = [];
+				for (var s in nodeSlaveList[pId][uId]){
+					keys.push(Number(s));
+				}
+				
+				keys.sort();
+				for(var j = 1; j < keys.length; j++){
+					
+					var mIdPrev = nodeSlaveList[pId][uId][keys[j-1]];
+					var mId = nodeSlaveList[pId][uId][keys[j]];
+					
+					//G.addEdge(mId, mIdPrev, keys[j] - keys[j-1]);
+					G.removeEdge(mId,pId);					
+				}
+			}
+		}
+		
+		var smallestWeight = 1000000;
+		var startNode = -1;
+		for(var pId in G.nodes){
+				   
+			if(G.nodes[pId][1] < smallestWeight){
+				smallestWeight = G.nodes[pId][1];
+				startNode = pId;
+			}
+		}
+		
+		var bound = [];
+		var boundIds = [];
+		bound.push(G.nodes[startNode][0]);
+		boundIds.push[startNode];
+		
+		var cycle = false;
+		var fail = false;
+		
+		var currentNode = startNode;
+		var nextNode = undefined;
+		console.debug("start: "+ startNode);
+		for(var id1 in G.edges){
+			for(var id2 in G.edges){
+				console.debug("("+G.nodes[id1][0][0]+","+ G.nodes[id1][0][1]+ ")->("+ G.nodes[id2][0][0]+","+G.nodes[id2][0][1]+")");
+				canvasCtx.beginPath();
+				canvasCtx.moveTo(G.nodes[id1][0][0], G.nodes[id1][0][1]);
+				canvasCtx.lineTo( G.nodes[id2][0][0], G.nodes[id2][0][1]);
+				canvasCtx.lineWidth = 10;
+				canvasCtx.strokeStyle = '#000000';
+				canvasCtx.stroke();
+			}
+		}
+		while(cycle || fail){
+			
+			smallestWeight = 10000000;
+			
+			nextNode = undefined;
+			for(var pId in G.edges[currentNode]){
+				console.debug(pId);
+				if(G.nodes[pId][1] < smallestWeight && !G.nodeIsVisited(pId) && currentNode != pId){
+					if(pId != startNode || (pId == startNode && bound.length >= 3)){
+						smallestWeight = G.nodes[pId][1];
+						nextNode = pId;
+						console.debug(nextNode);
+					}
+				}
+			}
+			
+			if(isDefined(nextNode)){
+				if(nextNode == startNode){
+					cycle = true;
+					break;
+				}
+				
+				bound.push(G.nodes[nextNode][0]);
+				boundIds.push(nextNode);
+				
+				currentNode = nextNode;
+				
+			}else if(bound.length > 1){
+				bound.pop();
+				boundIds.pop();
+				currentNode = boundIds[boundIds.length - 1];
+			}else{
+				fail = true;
+			}
+		}
+		
+		if(fail){
+			console.debug("Graph Traversal Failed to find a cycle.");
+		}else{
+			console.debug("found cycle of length: " + bound.length);
+			canvasCtx.beginPath();
+			canvasCtx.moveTo(bound[0][0], bound[0][1]);
+			for(var i = 1; i < bound.length; i++){
+				canvasCtx.lineTo(bound[i][0],bound[i][1]);
+			}
+			canvasCtx.fillStyle = 'rgba(128, 0, 128, 0.5)';
+			canvasCtx.closePath();
+			canvasCtx.fill();
+		}
+		
+		
+		
+
+		
 	}
 	
 	//Solves System Of Linear equations
@@ -328,6 +571,10 @@
 		canvas.style.width  = Math.min(window.innerWidth, window.innerHeight);
 		canvas.style.height = (yMax / xMax) *   Math.min(window.innerWidth, window.innerHeight);
 	};
+	
+	function pointHash(p) {
+		return p[1] + p[0]*yMax;
+	}
 	
 	function canvasMouseDown(event) {
 		var bRect = canvas.getBoundingClientRect();
@@ -434,6 +681,69 @@
 		
 		this.u = u; // unit vectors
 		this.p = p; // points
+	}
+	
+	function Graph(nodeHash){
+		this.nodes = {};
+		this.edges = {};
+		this.nodeHash = nodeHash;
+		
+		this.addNode = function(node, weight){
+			var id = this.nodeHash(node);
+			
+			if(typeof this.nodes[id] == 'undefined'){
+				this.nodes[id] = [node, weight, false];
+				this.edges[id] = {};
+			}
+			
+			return id;
+		};
+		
+		this.addEdge = function (id1, id2, dist){
+			this.edges[id1][id2] = dist;
+			this.edges[id2][id1] = dist;
+		};
+		
+		this.removeNode = function (id){
+			
+			delete edges[id];
+			
+			for(var edgeIter in this.edges){
+				if(typeof this.edges[edgeIter][id] != 'undefined' ){
+					delete this.edges[edgeIter][id];
+				}
+			}
+			
+		};
+		
+		this.removeEdge = function(id1, id2){
+			delete this.edges[id1][id2];
+			delete this.edges[id2][id1];
+		};
+		
+		this.visitNode = function(id){
+			this.nodes[id][2] = true;
+		}
+		
+		this.nodeIsVisited = function(id){
+			return this.nodes[id][2];
+		}
+		
+		this.unVisitNode = function (id){
+			this.nodes[id][2] = false;
+		}
+		
+		this.unVisitNodes = function(){
+			for(var id in this.nodes){
+				this.unVisitNode(id);
+			}
+		}
+		
+		
+	}
+	
+	function isDefined(myVar){
+		return (typeof myVar != 'undefined');
 	}
 	
 	
