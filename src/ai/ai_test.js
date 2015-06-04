@@ -30,8 +30,8 @@
 	
 	function createPlayers() {
 		//the viruses
-		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 200, false, '#00FF00') );
-		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
+		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 200, false, '#00FF00') );
+		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
 		
 		//the threats
 		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 300, true, '#FF0000') );
@@ -225,15 +225,17 @@
 					   
 					   if (isDefined(soln)){
 						   if(soln[0] >= 0 && soln[1] >= 0){
+							   
+							   
 							   var m = [p[0] + soln[0] * u[0], p[1] + soln[0] * u[1]];
-
+							  // console.debug("soln defined for points ("+p[0]+","+p[1]+")"+"("+q[0]+","+q[1]+")"+"("+m[0]+","+m[1]+")");
 							   // add this point
 							   var s = soln[0];
 							   var t = soln[1];
 							   
 							   var mId = G.addNode(m, dist(m[0],m[1], refPoint[0], refPoint[1]));
-							   G.addEdge(pId, mId, s);
-							   G.addEdge(qId, mId, t);
+							   if(pId != mId) G.addEdge(pId, mId, s);
+							   if(qId != mId) G.addEdge(qId, mId, t);
 							   
 							   
 							   
@@ -435,8 +437,8 @@
 					var mIdPrev = nodeSlaveList[pId][uId][keys[j-1]];
 					var mId = nodeSlaveList[pId][uId][keys[j]];
 					
-					//G.addEdge(mId, mIdPrev, keys[j] - keys[j-1]);
-					G.removeEdge(mId,pId);					
+					G.addEdge(mId, mIdPrev, keys[j] - keys[j-1]);
+					//if(pId != mIdPrev) G.removeEdge(mId,pId);					
 				}
 			}
 		}
@@ -461,10 +463,10 @@
 		
 		var currentNode = startNode;
 		var nextNode = undefined;
-		console.debug("start: "+ startNode);
+		//console.debug("start: "+ startNode);
 		for(var id1 in G.edges){
-			for(var id2 in G.edges){
-				console.debug("("+G.nodes[id1][0][0]+","+ G.nodes[id1][0][1]+ ")->("+ G.nodes[id2][0][0]+","+G.nodes[id2][0][1]+")");
+			for(var id2 in G.edges[id1]){
+				//console.debug("("+G.nodes[id1][0][0]+","+ G.nodes[id1][0][1]+ ")->("+ G.nodes[id2][0][0]+","+G.nodes[id2][0][1]+")");
 				canvasCtx.beginPath();
 				canvasCtx.moveTo(G.nodes[id1][0][0], G.nodes[id1][0][1]);
 				canvasCtx.lineTo( G.nodes[id2][0][0], G.nodes[id2][0][1]);
@@ -473,24 +475,26 @@
 				canvasCtx.stroke();
 			}
 		}
-		while(cycle || fail){
+		
+		
+		while(!cycle || !fail){
 			
-			smallestWeight = 10000000;
+			smallestWeight = 1000000000;
 			
 			nextNode = undefined;
 			for(var pId in G.edges[currentNode]){
-				console.debug(pId);
 				if(G.nodes[pId][1] < smallestWeight && !G.nodeIsVisited(pId) && currentNode != pId){
 					if(pId != startNode || (pId == startNode && bound.length >= 3)){
 						smallestWeight = G.nodes[pId][1];
 						nextNode = pId;
-						console.debug(nextNode);
+						//console.debug(nextNode);
 					}
 				}
 			}
 			
 			if(isDefined(nextNode)){
 				if(nextNode == startNode){
+					bound.push(G.nodes[nextNode][0]);
 					cycle = true;
 					break;
 				}
@@ -499,7 +503,7 @@
 				boundIds.push(nextNode);
 				
 				currentNode = nextNode;
-				
+				G.visitNode(currentNode);
 			}else if(bound.length > 1){
 				bound.pop();
 				boundIds.pop();
@@ -515,8 +519,13 @@
 			console.debug("found cycle of length: " + bound.length);
 			canvasCtx.beginPath();
 			canvasCtx.moveTo(bound[0][0], bound[0][1]);
-			for(var i = 1; i < bound.length; i++){
+			for(var i = 0; i < bound.length; i++){
+				//console.debug("("+bound[i][0]+","+bound[i][1]+")");
 				canvasCtx.lineTo(bound[i][0],bound[i][1]);
+				canvasCtx.lineWidth = 10;
+				canvasCtx.strokeStyle = '#FF00FF';
+				canvasCtx.stroke();
+
 			}
 			canvasCtx.fillStyle = 'rgba(128, 0, 128, 0.5)';
 			canvasCtx.closePath();
@@ -691,7 +700,7 @@
 		this.addNode = function(node, weight){
 			var id = this.nodeHash(node);
 			
-			if(typeof this.nodes[id] == 'undefined'){
+			if(!isDefined(this.nodes[id])){
 				this.nodes[id] = [node, weight, false];
 				this.edges[id] = {};
 			}
