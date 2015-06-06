@@ -30,8 +30,8 @@
 	
 	function createPlayers() {
 		//the viruses
-		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 200, false, '#00FF00') );
-		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
+		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 200, false, '#00FF00') );
+		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
 		
 		//the threats
 		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 300, true, '#FF0000') );
@@ -198,6 +198,17 @@
 				nodeMasterList.push(nodeId);
 				nodeSlaveList[nodeId] = {};
 			}
+			
+			for(var k = 0; k < BDesc1.p.length; k++){
+				var p = BDesc1.p[k];
+				var pId = G.nodeHash(p);
+				for(var l = 1; l < BDesc1.p.length; l++){
+					var q = BDesc1.p[l];
+					var qId = G.nodeHash(q);
+					var d = dist(p[0],p[1],q[0],q[1]);
+					G.addEdge(pId,qId,d);
+				}
+			}
 		}
 		
 		//Get all the Intersections and add the Vertices to Graph
@@ -228,32 +239,35 @@
 							   
 							   
 							   var m = [p[0] + soln[0] * u[0], p[1] + soln[0] * u[1]];
-							  // console.debug("soln defined for points ("+p[0]+","+p[1]+")"+"("+q[0]+","+q[1]+")"+"("+m[0]+","+m[1]+")");
-							   // add this point
-							   var s = soln[0];
-							   var t = soln[1];
 							   
-							   var mId = G.addNode(m, dist(m[0],m[1], refPoint[0], refPoint[1]));
-							   if(pId != mId) G.addEdge(pId, mId, s);
-							   if(qId != mId) G.addEdge(qId, mId, t);
-							   
-							   
-							   
-							   if(!isDefined(nodeSlaveList[pId][uId])){
-								   nodeSlaveList[pId][uId] = {};
+							   if( m[0] >= xMin-10 && m[0] <= xMax+10 && m[1] >= yMin-10 && m[1] <= yMax+10 ){
+								  // console.debug("soln defined for points ("+p[0]+","+p[1]+")"+"("+q[0]+","+q[1]+")"+"("+m[0]+","+m[1]+")");
+								   // add this point
+								   var s = soln[0];
+								   var t = soln[1];
+								   
+								   var mId = G.addNode(m, dist(m[0],m[1], refPoint[0], refPoint[1]));
+								   if(pId != mId) G.addEdge(pId, mId, s);
+								   if(qId != mId) G.addEdge(qId, mId, t);
+								   
+								   
+								   
+								   if(!isDefined(nodeSlaveList[pId][uId])){
+									   nodeSlaveList[pId][uId] = {};
+								   }
+								   nodeSlaveList[pId][uId][s] = mId;
+								   
+								   if(!isDefined(nodeSlaveList[qId][vId])){
+									   nodeSlaveList[qId][vId] = {};
+								   }
+								   nodeSlaveList[qId][vId][t] = mId;
+								   
+								   canvasCtx.fillStyle = '#000000';
+								   canvasCtx.beginPath();
+								   canvasCtx.arc(m[0], m[1], 25, 0, 2*Math.PI, false);
+								   canvasCtx.closePath();
+								   canvasCtx.fill();
 							   }
-							   nodeSlaveList[pId][uId][s] = mId;
-							   
-							   if(!isDefined(nodeSlaveList[qId][vId])){
-								   nodeSlaveList[qId][vId] = {};
-							   }
-							   nodeSlaveList[qId][vId][t] = mId;
-							   
-							   canvasCtx.fillStyle = '#000000';
-							   canvasCtx.beginPath();
-							   canvasCtx.arc(m[0], m[1], 25, 0, 2*Math.PI, false);
-							   canvasCtx.closePath();
-							   canvasCtx.fill();
 								
 								
 						   }
@@ -431,14 +445,16 @@
 					keys.push(Number(s));
 				}
 				
-				keys.sort();
-				for(var j = 1; j < keys.length; j++){
+				keys.sort(function(a, b){
+					return a-b;
+				});
+				for(var j = 2; j < keys.length; j++){
 					
 					var mIdPrev = nodeSlaveList[pId][uId][keys[j-1]];
 					var mId = nodeSlaveList[pId][uId][keys[j]];
 					
 					G.addEdge(mId, mIdPrev, keys[j] - keys[j-1]);
-					//if(pId != mIdPrev) G.removeEdge(mId,pId);					
+					G.removeEdge(mId,pId);					
 				}
 			}
 		}
@@ -455,8 +471,9 @@
 		
 		var bound = [];
 		var boundIds = [];
+		var resetBoundIds = [];
 		bound.push(G.nodes[startNode][0]);
-		boundIds.push[startNode];
+		boundIds.push(startNode);
 		
 		var cycle = false;
 		var fail = false;
@@ -464,6 +481,7 @@
 		var currentNode = startNode;
 		var nextNode = undefined;
 		//console.debug("start: "+ startNode);
+		canvasCtx.font="100px Georgia";
 		for(var id1 in G.edges){
 			for(var id2 in G.edges[id1]){
 				//console.debug("("+G.nodes[id1][0][0]+","+ G.nodes[id1][0][1]+ ")->("+ G.nodes[id2][0][0]+","+G.nodes[id2][0][1]+")");
@@ -474,10 +492,12 @@
 				canvasCtx.strokeStyle = '#000000';
 				canvasCtx.stroke();
 			}
+			
+			canvasCtx.fillText("("+Math.round(G.nodes[id1][0][0])+","+Math.round(G.nodes[id1][0][1])+")",G.nodes[id1][0][0],G.nodes[id1][0][1]);
 		}
 		
 		
-		while(!cycle || !fail){
+		while(!cycle && !fail){
 			
 			smallestWeight = 1000000000;
 			
@@ -493,22 +513,35 @@
 			}
 			
 			if(isDefined(nextNode)){
-				if(nextNode == startNode){
-					bound.push(G.nodes[nextNode][0]);
-					cycle = true;
-					break;
+				
+				while(resetBoundIds.length){
+					G.unVisitNode(resetBoundIds.pop());
 				}
 				
-				bound.push(G.nodes[nextNode][0]);
-				boundIds.push(nextNode);
-				
-				currentNode = nextNode;
-				G.visitNode(currentNode);
-			}else if(bound.length > 1){
+				if(nextNode == startNode){
+					if(pointInPolygon([me[0].x,me[0].y], bound)){
+						bound.push(G.nodes[nextNode][0]);
+						boundIds.push(nextNode);
+						cycle = true;
+						break;
+					}else{
+						nextNode = undefined;
+					}
+				}else{
+					bound.push(G.nodes[nextNode][0]);
+					boundIds.push(nextNode);
+					
+					currentNode = nextNode;
+					G.visitNode(currentNode);
+				}
+			}
+			
+			if(!isDefined(nextNode) && bound.length > 1){
 				bound.pop();
-				boundIds.pop();
+				resetBoundIds.push(boundIds.pop());
+				
 				currentNode = boundIds[boundIds.length - 1];
-			}else{
+			}else if(!isDefined(nextNode)){
 				fail = true;
 			}
 		}
@@ -519,8 +552,9 @@
 			console.debug("found cycle of length: " + bound.length);
 			canvasCtx.beginPath();
 			canvasCtx.moveTo(bound[0][0], bound[0][1]);
+
 			for(var i = 0; i < bound.length; i++){
-				//console.debug("("+bound[i][0]+","+bound[i][1]+")");
+				console.debug("("+Math.round(bound[i][0])+","+Math.round(bound[i][1])+") w:"+G.nodes[boundIds[i]][1]);
 				canvasCtx.lineTo(bound[i][0],bound[i][1]);
 				canvasCtx.lineWidth = 10;
 				canvasCtx.strokeStyle = '#FF00FF';
@@ -753,6 +787,35 @@
 	
 	function isDefined(myVar){
 		return (typeof myVar != 'undefined');
+	}
+	
+	/*****************************************************************
+	 * Point in polygon function:
+	 * http://alienryderflex.com/polygon/
+	 *****************************************************************/
+	function pointInPolygon(point, polyCorners){
+		var oddNodes = false;
+		
+		var j = polyCorners.length - 1;
+		
+		var x = point[0];
+		var y = point[1];
+		for(var i = 0; i < polyCorners.length; i++){
+			var polyXi = polyCorners[i][0];
+			var polyYi = polyCorners[i][1];
+			
+			var polyXj = polyCorners[j][0];
+			var polyYj = polyCorners[j][1];
+			
+			if( ( polyYi < y && polyYj >= y
+			|| polyYj < y && polyYi >= y)
+			&& (polyXi <= x || polyXj <=x)) {
+				oddNodes ^= (polyXi+(y-polyYi)/(polyYj-polyYi)*(polyXj-polyXi)<x);
+			}
+			j = i;
+		}
+		
+		return oddNodes;
 	}
 	
 	
