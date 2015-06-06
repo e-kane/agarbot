@@ -30,15 +30,17 @@
 	
 	function createPlayers() {
 		//the viruses
-		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 200, false, '#00FF00') );
-		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
-		
+		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 200, false, '#00FF00') );
+		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
+		hostiles.push( new Organism( 606.2237637734981, 846.2146437367413, 100, false, '#00FF00') );
 		//the threats
-		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 300, true, '#FF0000') );
-		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 325, true, '#FF0000') );
+		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 300, true, '#FF0000') );
+		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 325, true, '#FF0000') );
+		hostiles.push( new Organism( 845.976487904224, 2515.2852857429234, 325, true, '#FF0000') );
 		
 		//myself
 		me.push( new Organism(Math.random() * xMax, Math.random() * yMax, 150, false, '#0000FF') );
+		//me.push( new Organism( 2923.8709677419356,1546.4516129032259, 150, false, '#0000FF') );
 	};
 	
 	function drawPlayers() {
@@ -235,16 +237,18 @@
 					   var soln = solve2d(-u[0], v[0], p[0]-q[0], -u[1], v[1], p[1]-q[1]);
 					   
 					   if (isDefined(soln)){
-						   if(soln[0] >= 0 && soln[1] >= 0){
+						   var s = soln[0];
+						   var t = soln[1];
+						   
+						   if(s >= 0 && t >= 0){
 							   
 							   
-							   var m = [p[0] + soln[0] * u[0], p[1] + soln[0] * u[1]];
+							   var m = [p[0] + s * u[0], p[1] + s * u[1]];
 							   
-							   if( m[0] >= xMin-10 && m[0] <= xMax+10 && m[1] >= yMin-10 && m[1] <= yMax+10 ){
+							   if( m[0] >= xMin-0.5 && m[0] <= xMax+0.5 && m[1] >= yMin-0.5 && m[1] <= yMax+0.5 ){
 								  // console.debug("soln defined for points ("+p[0]+","+p[1]+")"+"("+q[0]+","+q[1]+")"+"("+m[0]+","+m[1]+")");
 								   // add this point
-								   var s = soln[0];
-								   var t = soln[1];
+
 								   
 								   var mId = G.addNode(m, dist(m[0],m[1], refPoint[0], refPoint[1]));
 								   if(pId != mId) G.addEdge(pId, mId, s);
@@ -286,6 +290,7 @@
 					for(var l = 0; l < BDesc2.u.length; l++){
 						 var q = BDesc2.p[ (BDesc2.type == 1) ? 0 : l];	
 						 var v = BDesc2.u[l];
+						 var vId = pointHash(v);
 						 
 						 var pId = G.nodeHash(p);
 						 var qId = G.nodeHash(q);
@@ -294,13 +299,14 @@
 						   
 						 var soln = solve2d(-u[0], v[0], p[0]-q[0], -u[1], v[1], p[1]-q[1]);
 						 if (typeof soln !== 'undefined'){
-							   if(soln[0] >= 0 && soln[1] >= 0){
-								   var m = [p[0] + soln[0] * u[0], p[1] + soln[0] * u[1]];
+							 
+							   var s = soln[0];
+							   var t = soln[1];
+							   
+							   if(s >= 0 && t >= 0){
+								   var m = [p[0] + s * u[0], p[1] + s * u[1]];
 								   if( m[0] <= Math.max(BDesc1.p[0][0], BDesc1.p[1][0]) && m[0] >= Math.min(BDesc1.p[0][0], BDesc1.p[1][0])
 								   && m[1] <= Math.max(BDesc1.p[0][1], BDesc1.p[1][1]) && m[1] >= Math.min(BDesc1.p[0][1], BDesc1.p[1][1])){
-									   
-									   var s = soln[0];
-									   var t = soln[1];
 								
 									   var mId = G.addNode(m, dist(m[0],m[1], refPoint[0], refPoint[1]));
 									   G.addEdge(pId, mId, s);
@@ -340,6 +346,7 @@
 					for(var k = 0; k < BDesc1.u.length; k++){
 						 var q = BDesc1.p[ (BDesc1.type == 1) ? 0 : k];	
 						 var v = BDesc1.u[k];
+						 var vId = pointHash(v);
 						 
 						 var pId = G.nodeHash(p);
 						 var qId = G.nodeHash(q);
@@ -435,7 +442,7 @@
 				
 			}
 		}
-		
+		var oldG = G;
 		//clean up the edges (i.e. have everything adjacent connected)
 		for(var i = 0; i < nodeMasterList.length; i++){
 			var pId = nodeMasterList[i];
@@ -448,13 +455,18 @@
 				keys.sort(function(a, b){
 					return a-b;
 				});
-				for(var j = 2; j < keys.length; j++){
-					
-					var mIdPrev = nodeSlaveList[pId][uId][keys[j-1]];
+				
+				for(var j = 0; j < keys.length; j++){
 					var mId = nodeSlaveList[pId][uId][keys[j]];
-					
-					G.addEdge(mId, mIdPrev, keys[j] - keys[j-1]);
-					G.removeEdge(mId,pId);					
+					G.removeEdge(mId,pId);
+				}
+				
+				mIdPrev = pId;
+				for(var j = 0; j < keys.length; j++){
+					var mId = nodeSlaveList[pId][uId][keys[j]];
+					if(mId == mIdPrev) continue;
+					G.addEdge(mId, mIdPrev, (j > 0) ? keys[j] - keys[j-1] : keys[j]);	
+					mIdPrev = mId;
 				}
 			}
 		}
@@ -500,23 +512,28 @@
 		while(!cycle && !fail){
 			
 			smallestWeight = 1000000000;
-			
+			lowestVisits = G.numNodes; 
 			nextNode = undefined;
+			
+			var visNodes = [];
 			for(var pId in G.edges[currentNode]){
-				if(G.nodes[pId][1] < smallestWeight && !G.nodeIsVisited(pId) && currentNode != pId){
-					if(pId != startNode || (pId == startNode && bound.length >= 3)){
+				if( 	(pId != startNode || (pId == startNode && bound.length >= 3))			// makes sure we're not looping at the very beginning
+						&& G.getNodeNumVisits(pId) < G.getNodeNumEdges(pId)    					// get all visitable nodes
+						&&  currentNode != pId){ 												// in case we have a loopback to ourselves (we shouldn't though)
+					visNodes.push(pId);
+					if(lowestVisits > G.getNodeNumVisits(pId)) lowestVisits = G.getNodeNumVisits(pId);
+				}
+			}
+			
+			for(var i = 0; i < visNodes.length; i++){
+				var pId = visNodes[i];
+				if(G.nodes[pId][1] <= smallestWeight && G.getNodeNumVisits(pId) <= lowestVisits  ){
 						smallestWeight = G.nodes[pId][1];
 						nextNode = pId;
-						//console.debug(nextNode);
-					}
 				}
 			}
 			
 			if(isDefined(nextNode)){
-				
-				while(resetBoundIds.length){
-					G.unVisitNode(resetBoundIds.pop());
-				}
 				
 				if(nextNode == startNode){
 					if(pointInPolygon([me[0].x,me[0].y], bound)){
@@ -538,7 +555,7 @@
 			
 			if(!isDefined(nextNode) && bound.length > 1){
 				bound.pop();
-				resetBoundIds.push(boundIds.pop());
+				boundIds.pop();
 				
 				currentNode = boundIds[boundIds.length - 1];
 			}else if(!isDefined(nextNode)){
@@ -616,7 +633,8 @@
 	};
 	
 	function pointHash(p) {
-		return p[1] + p[0]*yMax;
+		return "("+Math.round(p[0])+","+Math.round(p[1])+")";
+		//return p[1] + p[0]*yMax;
 	}
 	
 	function canvasMouseDown(event) {
@@ -730,57 +748,81 @@
 		this.nodes = {};
 		this.edges = {};
 		this.nodeHash = nodeHash;
+		this.numNodes = 0;
+		this.numEdges = 0;
 		
 		this.addNode = function(node, weight){
 			var id = this.nodeHash(node);
-			
+			// index 2 is edge count
+			// index 3 is number of visits
 			if(!isDefined(this.nodes[id])){
-				this.nodes[id] = [node, weight, false];
+				this.nodes[id] = [node, weight, 0, 0];
 				this.edges[id] = {};
 			}
 			
+			this.numNodes++;
 			return id;
 		};
 		
 		this.addEdge = function (id1, id2, dist){
 			this.edges[id1][id2] = dist;
 			this.edges[id2][id1] = dist;
+			
+			//update edge count
+			this.nodes[id1][2]++;
+			this.nodes[id2][2]++;
+			
+			this.numEdges++;
 		};
 		
 		this.removeNode = function (id){
-			
-			delete edges[id];
-			
 			for(var edgeIter in this.edges){
 				if(typeof this.edges[edgeIter][id] != 'undefined' ){
 					delete this.edges[edgeIter][id];
+					this.nodes[edgeIter][2]--;
+					this.numEdges--;
 				}
 			}
+			delete this.edges[id];
+			delete this.nodes[id];
 			
+			this.numNodes--;
+		};
+		
+		this.getNodeNumEdges = function(id){
+			return this.nodes[id][2];
 		};
 		
 		this.removeEdge = function(id1, id2){
-			delete this.edges[id1][id2];
-			delete this.edges[id2][id1];
+			
+			if(isDefined(this.edges[id1][id2]) && isDefined(this.edges[id2][id1])){
+				delete this.edges[id1][id2];
+				delete this.edges[id2][id1];
+				
+				//update edge count
+				this.nodes[id1][2]--;
+				this.nodes[id2][2]--;
+				this.numEdges--;
+			}
 		};
 		
 		this.visitNode = function(id){
-			this.nodes[id][2] = true;
-		}
+			this.nodes[id][3]++;
+		};
 		
-		this.nodeIsVisited = function(id){
-			return this.nodes[id][2];
-		}
+		this.getNodeNumVisits = function(id){
+			return this.nodes[id][3];
+		};
 		
-		this.unVisitNode = function (id){
-			this.nodes[id][2] = false;
-		}
+		this.resetNodeNumVisits = function (id){
+			this.nodes[id][3] = 0;
+		};
 		
-		this.unVisitNodes = function(){
+		this.resetNodesNumVisits = function(){
 			for(var id in this.nodes){
-				this.unVisitNode(id);
+				this.resetNodeNumVisits(id);
 			}
-		}
+		};
 		
 		
 	}
