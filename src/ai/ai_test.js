@@ -676,7 +676,7 @@
 		var node = prev[startNode];
 		
 		var iter = 0;
-		while(prev[node] != startNode && iter < G.numNodes){
+		while(node != startNode && iter < G.numNodes && isDefined(node)){
 			point = G.nodePoint(node);
 			
 			console.debug("("+Math.round(point[0])+","+Math.round(point[1])+") ");
