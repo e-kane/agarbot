@@ -30,18 +30,19 @@
 
 	function createPlayers() {
 		//the viruses
-		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 200, false, '#00FF00') );
-		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
-		hostiles.push( new Organism( 606.2237637734981, 846.2146437367413, 100, false, '#00FF00') );
+		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 200, false, '#00FF00') );
+		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
+		//hostiles.push( new Organism( 606.2237637734981, 846.2146437367413, 100, false, '#00FF00') );
 		//the threats
-		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 300, true, '#FF0000') );
-		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 325, true, '#FF0000') );
-		hostiles.push( new Organism( 845.976487904224, 2515.2852857429234, 325, true, '#FF0000') );
+		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 300, true, '#FF0000') );
+		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 325, true, '#FF0000') );
+		//hostiles.push( new Organism( 845.976487904224, 2515.2852857429234, 325, true, '#FF0000') );
 
 		//myself
+		me.push( new Organism(xMax/2, yMax / 2, 150, false, '#0000FF') );
 		//me.push( new Organism(Math.random() * xMax, Math.random() * yMax, 150, false, '#0000FF') );
 		//me.push( new Organism( 2923.8709677419356,1546.4516129032259, 150, false, '#0000FF') );
-		me.push( new Organism(1693.282716822586, 2207.4145613531473, 150, false, '#0000FF') );
+		//me.push( new Organism(1693.282716822586, 2207.4145613531473, 150, false, '#0000FF') );
 	};
 
 	function drawPlayers() {
@@ -620,16 +621,16 @@
 			}else{	
 				var minArea = Infinity;
 				for( var v in Q ){
-					if(area[v] <= minArea && (v != startNode || iter > 3) ){
-						minArea = area[v];
+					if(Math.abs(area[v]) <= minArea && (v != startNode || iter > 3) ){
+						minArea = Math.abs(area[v]);
 						u = v;
 					}
 				}
 				delete Q[u];
 			}
-			
+			if(!isDefined(u)) break;
 			var pointU = G.nodePoint(u);
-			console.debug("Favourite: " + u + "at theta: " + theta[u]);
+			console.debug("Favourite: " + u + "at theta: " + theta[u] + " at area " + area[u]);
 			for(var v in G.edges[u]){ // for neighbors v of u
 				if(!isDefined(Q[v])) continue;
 				
@@ -646,8 +647,8 @@
 						var a =  (pointU[0] + startPoint[0])*(pointU[1] - startPoint[1]) + 
 						(pointU[0] + pointV[0])*(pointV[1] - pointU[1]) + 
 						(pointV[0] + startPoint[0])*(startPoint[1] - pointV[1]);
-						a = Math.abs(a);
-						if(a <= area[v]){
+						//a = Math.abs(a);
+						if(Math.abs(a) < Math.abs(area[v])){
 							theta[v] = edgeTheta + theta[u];
 							area[v] = a;
 							prev[v] = u;
@@ -656,8 +657,8 @@
 						var a = area[u]  - (pointU[0] + startPoint[0])*(startPoint[1] - pointU[1]) +
 						(pointU[0] + pointV[0])*(pointV[1] - pointU[1]) + 
 						(pointV[0] + startPoint[0])*(startPoint[1] - pointV[1]);
-						a = Math.abs(a);
-						if(a <= area[v]){
+						//a = Math.abs(a);
+						if(Math.abs(a) < Math.abs(area[v])){
 							theta[v] = edgeTheta + theta[u];
 							area[v] = a;
 							prev[v] = u;
