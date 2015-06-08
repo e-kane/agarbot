@@ -30,10 +30,12 @@
 
 	function createPlayers() {
 		//the viruses
+		//hostiles.push( new Organism( 1964.859920196087, 2029.7598553445184, 200, false, '#00FF00') );
 		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 200, false, '#00FF00') );
 		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
 		//hostiles.push( new Organism( 606.2237637734981, 846.2146437367413, 100, false, '#00FF00') );
 		//the threats
+		//hostiles.push( new Organism( 1305.2070931990615, 2731.5467833102275, 300, true, '#FF0000') );
 		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 300, true, '#FF0000') );
 		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 325, true, '#FF0000') );
 		//hostiles.push( new Organism( 845.976487904224, 2515.2852857429234, 325, true, '#FF0000') );
@@ -138,6 +140,7 @@
 				var P2 = [safe_d * u2[0] + me[0].x, safe_d * u2[1] + me[0].y];
 
 				var BDesc = new BoundDesc(2, [u1, u2], [P1, P2]);
+				//var BDesc = new BoundDesc(1, [u1, u2], [[me[0].x, me[0].y]]);
 				BDescList.push(BDesc);
 				// draw the lines
 				canvasCtx.beginPath();
@@ -590,7 +593,7 @@
 			theta[pId] = 0;
 			area[pId] = Infinity;
 			
-			if(G.nodeInfo(pId).dist < smallestWeight){
+			if(G.nodeInfo(pId).dist < smallestWeight && G.nodeInfo(pId).dist  > 0){
 				smallestWeight = G.nodeInfo(pId).dist;
 				startNode = pId;
 			}
@@ -604,6 +607,7 @@
 			}else{
 				var thetaPId = G.nodeInfo(pId).theta - startTheta;
 				expectedTheta[pId] = (thetaPId >= 0) ? thetaPId : 2*Math.PI + thetaPId;
+				if(expectedTheta[pId]  == 0) expectedTheta[pId] = 2*Math.PI;
 				//expectedTheta[pId] = thetaPId;
 			}
 		}
@@ -638,7 +642,7 @@
 				//console.debug("Theta: " + edgeTheta + " on edge :" + u + "->" + v);
 				var pointV = G.nodePoint(v);
 				
-				if( inRange(edgeTheta + theta[u], expectedTheta[v] , 0.05) ){
+				if( inRange(edgeTheta + theta[u], expectedTheta[v] , 0.05) || (u == startNode && edgeTheta > Math.PI && iter > 4)  ){
 					if(iter == 0){
 						area[v] = 0;
 						theta[v] = edgeTheta + theta[u];
