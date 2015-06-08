@@ -31,13 +31,18 @@
 	function createPlayers() {
 		//the viruses
 		//hostiles.push( new Organism( 1964.859920196087, 2029.7598553445184, 200, false, '#00FF00') );
-		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 200, false, '#00FF00') );
-		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
+		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 200, false, '#00FF00') );
+		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
+		
+		hostiles.push( new Organism( 3661.8490416855193, 453.87562743829346, 200, false, '#00FF00') );
+		hostiles.push( new Organism( 104.80856771806968, 911.8451044877526, 100, false, '#00FF00') );
+		
 		//hostiles.push( new Organism( 606.2237637734981, 846.2146437367413, 100, false, '#00FF00') );
 		//the threats
 		//hostiles.push( new Organism( 1305.2070931990615, 2731.5467833102275, 300, true, '#FF0000') );
-		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 300, true, '#FF0000') );
-		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 325, true, '#FF0000') );
+		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 300, true, '#FF0000') );
+		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 325, true, '#FF0000') );
+
 		//hostiles.push( new Organism( 845.976487904224, 2515.2852857429234, 325, true, '#FF0000') );
 
 		//myself
@@ -118,13 +123,15 @@
 				canvasCtx.strokeStyle = '#ff0000';
 				canvasCtx.stroke();
 			}else{
-				var d = dist(me[0].x, me[0].y, hostiles[i].x, hostiles[i].y);
-				var r = Math.max(me[0].r, hostiles[i].r);
+
 
 				// get the unit vector from my center to the hostile center
 				var u = unitVec(hostiles[i].x - me[0].x, hostiles[i].y - me[0].y);
 
-
+				var d = dist(me[0].x, me[0].y, hostiles[i].x, hostiles[i].y);
+				var r = Math.max(me[0].r, hostiles[i].r);
+				
+				
 				// cos and sin for rotation
 				var sin = r / d;
 				var cos = Math.sqrt(d*d - r*r) / d;
@@ -235,8 +242,8 @@
 					thetaP = G.nodeInfo(pId).theta;
 					thetaQ = G.nodeInfo(qId).theta;
 					
-					G.addEdge(pId,qId,new edgeInfo(d, thetaQ - thetaP));
-					G.addEdge(qId,pId,new edgeInfo(d, thetaP - thetaQ));
+					if(pId != qId) G.addEdge(pId,qId,new edgeInfo(d, thetaQ - thetaP));
+					if(pId != qId) G.addEdge(qId,pId,new edgeInfo(d, thetaP - thetaQ));
 				}
 			}
 		}
@@ -479,7 +486,7 @@
 								var t = soln[1];
 
 								var d = dist(m[0],m[1], refPoint[0], refPoint[1]);
-								var theta = atan(m[0]-refPoint[0], m[1] - refPoint[1]);
+								var thetaM = atan(m[0]-refPoint[0], m[1] - refPoint[1]);
 
 								var mId = G.addNode(m, new nodeInfo(d, theta));
 								
@@ -488,13 +495,13 @@
 								thetaQ = G.nodeInfo(qId).theta;
 								
 								if(pId != mId){
-									G.addEdge(pId,mId,new edgeInfo(s, thetaP - theta));
-									G.addEdge(mId,pId,new edgeInfo(s, theta - thetaP));
+									G.addEdge(pId,mId,new edgeInfo(s, thetaM - thetaP));
+									G.addEdge(mId,pId,new edgeInfo(s, thetaP - thetaM));
 									//G.addEdge(pId, mId, s);
 								}
 								if(qId != mId){
-									G.addEdge(qId,mId,new edgeInfo(t, thetaQ - theta));
-									G.addEdge(mId,qId,new edgeInfo(t, theta - thetaQ));
+									G.addEdge(qId,mId,new edgeInfo(t, thetaM - thetaQ));
+									G.addEdge(mId,qId,new edgeInfo(t, thetaQ - thetaM));
 								}
 
 								
@@ -554,8 +561,8 @@
 					if(mId == mIdPrev) continue;
 
 					
-					G.addEdge(mId,mIdPrev,new edgeInfo(d, thetaPrev - thetaId));
-					G.addEdge(mIdPrev,mId,new edgeInfo(d, thetaId  - thetaPrev));
+					if(mId != mIdPrev) G.addEdge(mId,mIdPrev,new edgeInfo(d, thetaPrev - thetaId));
+					if(mId != mIdPrev) G.addEdge(mIdPrev,mId,new edgeInfo(d, thetaId  - thetaPrev));
 					
 					mIdPrev = mId;
 				}
@@ -642,7 +649,9 @@
 				//console.debug("Theta: " + edgeTheta + " on edge :" + u + "->" + v);
 				var pointV = G.nodePoint(v);
 				
-				if( inRange(edgeTheta + theta[u], expectedTheta[v] , 0.05) || (u == startNode && edgeTheta > Math.PI && iter > 4)  ){
+				if( inRange(edgeTheta + theta[u], expectedTheta[v] , 0.05) ||
+						(u == startNode && edgeTheta == 0 && inRange(expectedTheta[v], 2*Math.PI, 0.01)) ||
+						(u == startNode && edgeTheta > Math.PI && iter > 4)  ){
 					if(iter == 0){
 						area[v] = 0;
 						theta[v] = edgeTheta + theta[u];
@@ -813,7 +822,7 @@
 
 	function atan(x, y){
 		var theta = Math.atan2(x,y);
-		return ((theta >= 0) ? theta: 2*Math.PI + theta).toFixed(4);
+		return ((theta >= 0) ? theta: 2*Math.PI + theta);
 	}
 	
 	function inRange(a, b, range){
