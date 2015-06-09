@@ -31,18 +31,29 @@
 	function createPlayers() {
 		//the viruses
 		//hostiles.push( new Organism( 1964.859920196087, 2029.7598553445184, 200, false, '#00FF00') );
+		//hostiles.push( new Organism( 2473.356469767163, 2522.6868704837284, 200, false, '#00FF00') );
+		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
+		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 200, false, '#00FF00') );
+		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
+		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 200, false, '#00FF00') );
+		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
 		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 200, false, '#00FF00') );
 		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
 		
-		hostiles.push( new Organism( 3661.8490416855193, 453.87562743829346, 200, false, '#00FF00') );
-		hostiles.push( new Organism( 104.80856771806968, 911.8451044877526, 100, false, '#00FF00') );
+		//hostiles.push( new Organism( 3661.8490416855193, 453.87562743829346, 100, false, '#00FF00') );
+		//hostiles.push( new Organism( 104.80856771806968, 911.8451044877526, 100, false, '#00FF00') );
 		
 		//hostiles.push( new Organism( 606.2237637734981, 846.2146437367413, 100, false, '#00FF00') );
 		//the threats
 		//hostiles.push( new Organism( 1305.2070931990615, 2731.5467833102275, 300, true, '#FF0000') );
+		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 300, true, '#FF0000') );
+		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 325, true, '#FF0000') );
+		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 300, true, '#FF0000') );
+		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 325, true, '#FF0000') );
 		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 300, true, '#FF0000') );
 		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 325, true, '#FF0000') );
-
+		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 300, true, '#FF0000') );
+		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 325, true, '#FF0000') );
 		//hostiles.push( new Organism( 845.976487904224, 2515.2852857429234, 325, true, '#FF0000') );
 
 		//myself
@@ -631,9 +642,21 @@
 				u = startNode;
 			}else{	
 				var minArea = Infinity;
+				var uArray = [];
 				for( var v in Q ){
-					if(Math.abs(area[v]) <= minArea && (v != startNode || iter > 3) ){
+					if(Math.abs(area[v]) < minArea && 
+					(v != startNode || iter > 3) 
+					//&& (inRange(theta[v], expectedTheta[v], 0.05) || (iter == 1 && inRange(0,expectedTheta[v] , 0.05)) )
+					){
 						minArea = Math.abs(area[v]);
+						uArray.push(v);
+					}
+				}
+				var minDist = Infinity;
+				for(var i = 0; i < uArray.length; i++){
+					var v = uArray[i];
+					if(G.nodeInfo(v).dist < minDist){
+						minDist = G.nodeInfo(v).dist;
 						u = v;
 					}
 				}
@@ -642,6 +665,7 @@
 			if(!isDefined(u)) break;
 			var pointU = G.nodePoint(u);
 			console.debug("Favourite: " + u + "at theta: " + theta[u] + " at area " + area[u]);
+			var found = false;
 			for(var v in G.edges[u]){ // for neighbors v of u
 				if(!isDefined(Q[v])) continue;
 				
@@ -650,8 +674,8 @@
 				var pointV = G.nodePoint(v);
 				
 				if( inRange(edgeTheta + theta[u], expectedTheta[v] , 0.05) ||
-						(u == startNode && edgeTheta == 0 && inRange(expectedTheta[v], 2*Math.PI, 0.01)) ||
 						(u == startNode && edgeTheta > Math.PI && iter > 4)  ){
+					found = true;
 					if(iter == 0){
 						area[v] = 0;
 						theta[v] = edgeTheta + theta[u];
@@ -661,7 +685,7 @@
 						(pointU[0] + pointV[0])*(pointV[1] - pointU[1]) + 
 						(pointV[0] + startPoint[0])*(startPoint[1] - pointV[1]);
 						//a = Math.abs(a);
-						if(Math.abs(a) < Math.abs(area[v])){
+						if(Math.abs(a) < Math.abs(area[v]) ){
 							theta[v] = edgeTheta + theta[u];
 							area[v] = a;
 							prev[v] = u;
@@ -671,7 +695,7 @@
 						(pointU[0] + pointV[0])*(pointV[1] - pointU[1]) + 
 						(pointV[0] + startPoint[0])*(startPoint[1] - pointV[1]);
 						//a = Math.abs(a);
-						if(Math.abs(a) < Math.abs(area[v])){
+						if(Math.abs(a) < Math.abs(area[v]) || area[v] == 0 && inRange(expectedTheta[v], 2*Math.PI, 0.01) ){
 							theta[v] = edgeTheta + theta[u];
 							area[v] = a;
 							prev[v] = u;
@@ -680,6 +704,22 @@
 					}
 				}
 			}
+			
+			if(!found && iter == 0){
+				for(var v in G.edges[u]){ // for neighbors v of u
+					if(!isDefined(Q[v])) continue;
+					
+					var edgeTheta = G.edgeInfo(u,v).theta;
+					
+					if(iter == 0 && inRange(0, edgeTheta, 0.01) ){
+						area[v] = 0;
+						theta[v] = 0;
+						prev[v] = u;
+					}
+				}
+			}
+			
+			
 			iter++;
 		}
 		var point = G.nodePoint(startNode);
@@ -822,11 +862,15 @@
 
 	function atan(x, y){
 		var theta = Math.atan2(x,y);
-		return ((theta >= 0) ? theta: 2*Math.PI + theta);
+		return ((theta >= 0) ? theta: 2*Math.PI + theta).toFixed(5);
 	}
 	
 	function inRange(a, b, range){
-		return (a >= (b*(1-range)) && a <= (b * (1+range)));
+		if(a != 0){
+			return (a >= (b*(1-range)) && a <= (b * (1+range)));
+		}else{
+			return a >= b-range && a <= b+range;
+		}
 	}
 
 	function initCanvas() {
