@@ -32,10 +32,10 @@
 		//the viruses
 		//hostiles.push( new Organism( 1964.859920196087, 2029.7598553445184, 200, false, '#00FF00') );
 		//hostiles.push( new Organism( 2473.356469767163, 2522.6868704837284, 200, false, '#00FF00') );
+		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
+		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 200, false, '#00FF00') );
 		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
 		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 200, false, '#00FF00') );
-		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
-		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 200, false, '#00FF00') );
 		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
 		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 200, false, '#00FF00') );
 		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
@@ -46,10 +46,10 @@
 		//hostiles.push( new Organism( 606.2237637734981, 846.2146437367413, 100, false, '#00FF00') );
 		//the threats
 		//hostiles.push( new Organism( 1305.2070931990615, 2731.5467833102275, 300, true, '#FF0000') );
-		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 300, true, '#FF0000') );
-		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 325, true, '#FF0000') );
-		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 300, true, '#FF0000') );
-		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 325, true, '#FF0000') );
+		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 600, true, '#FF0000') );
+		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 500, true, '#FF0000') );
+		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 400, true, '#FF0000') );
+		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 350, true, '#FF0000') );
 		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 300, true, '#FF0000') );
 		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 325, true, '#FF0000') );
 		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 300, true, '#FF0000') );
@@ -95,44 +95,91 @@
 
 				// get the safe distance, that is how far until my center
 				// intersects the hostile's circumference
-				var safe_d = dist(me[0].x, me[0].y, hostiles[i].x, hostiles[i].y) - hostiles[i].r;
-
+				var d_rr = dist(me[0].x, me[0].y, hostiles[i].x, hostiles[i].y)
+				var safe_d = d_rr - hostiles[i].r;
+				
 				// get the unit vector from my center to the hostile center
 				var u = unitVec(hostiles[i].x - me[0].x, hostiles[i].y - me[0].y);
-
 				// P is the point where moving towards each other my center
 				// intersects the hostile's center. d is the distance to P
 				var d = safe_d * (me[0].v) / (me[0].v + hostiles[i].v);
-
 				var P = [ me[0].x + d * u[0], me[0].y + d * u[1] ];
+				
+				if( d_rr > hostiles[i].r){
+					// here we use potential equations for a time "field"
+					// for me the equation is va / ra where ra is measured from my center
+					// for the hostile the equation is vb / (Rb - rb) where Rb > rb
+					// reason for this is that we want to consider the effect of the hostile's size
+					// so that we avoid getting our center inside his area (i.e. worst case this 
+					// give the hostile 50% of my mass which is very bad)
+					
+					// we arbitartily choose d_rr as the equipotential distance in order
+					// to approximate the equipotential curve where my potential equals the hostile
+					// the line defined should never be crossed
+					var Rb = ( (hostiles[i].v / me[0].v) * d_rr + hostiles[i].r);
+					
+					var cosG = (2*d_rr*d_rr - Rb*Rb) / (2*d_rr*d_rr);
+					var sinG = Math.sqrt(1 - cosG*cosG);
+					
+					// these vectors point the equipotential points
+					var v1 = [d_rr*(u[0]*cosG - u[1]*sinG), d_rr*(u[0]*sinG + u[1]*cosG)];
+					var v2 = [d_rr*(u[0]*cosG + u[1]*sinG), d_rr*(u[1]*cosG - u[0]*sinG)];
+					
+					// this vector points to the equipotential point going straight at each other
+					var v0 = [d*u[0], d*u[1]];
+					
+					var u1 = unitVec(v1[0] - v0[0], v1[1]-v0[1]);
+					var u2 = unitVec(v2[0] - v0[0], v2[1]-v0[1]);
+					
+					var BDesc = new BoundDesc(1, [u1, u2], [P]);
+					BDescList.push(BDesc);
+					
+					// draw the lines
+					canvasCtx.beginPath();
+					canvasCtx.moveTo(P[0], P[1]);
+					canvasCtx.lineTo(P[0] + u1[0] * 4000, P[1] + u1[1] * 4000);
+					canvasCtx.lineWidth = 10;
+					canvasCtx.strokeStyle = '#ff0000';
+					canvasCtx.stroke();
 
-				// cos and sin for rotation
-				var sin = Math.sqrt( me[0].v*me[0].v - hostiles[i].v*hostiles[i].v ) / me[0].v;
-				var cos = hostiles[i].v / me[0].v;
 
-				//unit vectors representing the "danger lines" for this threat
-				var u1 = [u[0]*cos - u[1]*sin, u[0]*sin + u[1]*cos];
-				var u2 = [u[0]*cos + u[1]*sin, u[1]*cos - u[0]*sin];
+					canvasCtx.beginPath();
+					canvasCtx.moveTo(P[0], P[1]);
+					canvasCtx.lineTo(P[0] + u2[0] * 4000, P[1] + u2[1] * 4000);
+					canvasCtx.lineWidth = 10;
+					canvasCtx.strokeStyle = '#ff0000';
+					canvasCtx.stroke();
+					
+				}else{
+					// my original naive implementation
+					// cos and sin for rotation
+					var sin = Math.sqrt( me[0].v*me[0].v - hostiles[i].v*hostiles[i].v ) / me[0].v;
+					var cos = hostiles[i].v / me[0].v;
+					
+					//unit vectors representing the "danger lines" for this threat
+					var u1 = [u[0]*cos - u[1]*sin, u[0]*sin + u[1]*cos];
+					var u2 = [u[0]*cos + u[1]*sin, u[1]*cos - u[0]*sin];
+					
+					var BDesc = new BoundDesc(1, [u1, u2], [P]);
+					BDescList.push(BDesc);
+					
+					// draw the lines
+					canvasCtx.beginPath();
+					canvasCtx.moveTo(P[0], P[1]);
+					canvasCtx.lineTo(P[0] + u1[0] * 4000, P[1] + u1[1] * 4000);
+					canvasCtx.lineWidth = 10;
+					canvasCtx.strokeStyle = '#ff0000';
+					canvasCtx.stroke();
 
-				var BDesc = new BoundDesc(1, [u1, u2], [P]);
-				BDescList.push(BDesc);
 
-
-				// draw the lines
-				canvasCtx.beginPath();
-				canvasCtx.moveTo(P[0], P[1]);
-				canvasCtx.lineTo(P[0] + u1[0] * 4000, P[1] + u1[1] * 4000);
-				canvasCtx.lineWidth = 10;
-				canvasCtx.strokeStyle = '#ff0000';
-				canvasCtx.stroke();
-
-
-				canvasCtx.beginPath();
-				canvasCtx.moveTo(P[0], P[1]);
-				canvasCtx.lineTo(P[0] + u2[0] * 4000, P[1] + u2[1] * 4000);
-				canvasCtx.lineWidth = 10;
-				canvasCtx.strokeStyle = '#ff0000';
-				canvasCtx.stroke();
+					canvasCtx.beginPath();
+					canvasCtx.moveTo(P[0], P[1]);
+					canvasCtx.lineTo(P[0] + u2[0] * 4000, P[1] + u2[1] * 4000);
+					canvasCtx.lineWidth = 10;
+					canvasCtx.strokeStyle = '#ff0000';
+					canvasCtx.stroke();
+					
+				}
 			}else{
 
 
@@ -653,12 +700,17 @@
 					}
 				}
 				var minDist = Infinity;
+				var minTheta = Infinity;
 				for(var i = 0; i < uArray.length; i++){
 					var v = uArray[i];
 					if(G.nodeInfo(v).dist < minDist){
 						minDist = G.nodeInfo(v).dist;
 						u = v;
 					}
+					/*if(expectedTheta[v] < minTheta){
+						minTheta = expectedTheta[v];
+						u = v;
+					}*/
 				}
 				delete Q[u];
 			}
