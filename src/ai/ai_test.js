@@ -36,7 +36,7 @@
 		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 200, false, '#00FF00') );
 		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
 		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 200, false, '#00FF00') );
-		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
+		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
 		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 200, false, '#00FF00') );
 		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 100, false, '#00FF00') );
 		
@@ -46,12 +46,12 @@
 		//hostiles.push( new Organism( 606.2237637734981, 846.2146437367413, 100, false, '#00FF00') );
 		//the threats
 		//hostiles.push( new Organism( 1305.2070931990615, 2731.5467833102275, 300, true, '#FF0000') );
-		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 600, true, '#FF0000') );
-		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 500, true, '#FF0000') );
+		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 600, true, '#FF0000') );
+		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 500, true, '#FF0000') );
 		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 400, true, '#FF0000') );
 		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 350, true, '#FF0000') );
-		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 300, true, '#FF0000') );
-		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 325, true, '#FF0000') );
+		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 300, true, '#FF0000') );
+		hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 325, true, '#FF0000') );
 		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 300, true, '#FF0000') );
 		//hostiles.push( new Organism( Math.random() * xMax, Math.random() * yMax, 325, true, '#FF0000') );
 		//hostiles.push( new Organism( 845.976487904224, 2515.2852857429234, 325, true, '#FF0000') );
@@ -290,12 +290,12 @@
 					if(!isDefined(nodeSlaveList[pId][uId])){
 						nodeSlaveList[pId][uId] = {};
 					}
-					//nodeSlaveList[pId][uId][d] = q;
+					nodeSlaveList[pId][uId][d] = qId;
 
-					//if(!isDefined(nodeSlaveList[qId][vId])){
-					//   nodeSlaveList[qId][vId] = {};
-					//}
-					// nodeSlaveList[qId][vId][d] = p;
+					if(!isDefined(nodeSlaveList[qId][vId])){
+					   nodeSlaveList[qId][vId] = {};
+					}
+					nodeSlaveList[qId][vId][d] = pId;
 
 					thetaP = G.nodeInfo(pId).theta;
 					thetaQ = G.nodeInfo(qId).theta;
@@ -644,18 +644,28 @@
 		
 		
 		//Dijkstra's Algorithm
+		//	This has been modified for this particular problem:
+		//		- Use theta as a means to direct the search around a point
+		//		  by checking if the angle we are at is expected
+		//		- Use a metric of (minimum area)/(max perimeter)
 		var prev = {};
 		var Q = {};
 		var theta = {};
 		var expectedTheta = {};
+		var perim = {};
 		var area = {};
+		var score = {};
 		
 		var smallestWeight = 1000000;
 		var startNode = -1;
+		
+		// initialize variables; find starting point
 		for(var pId in G.nodes){
-			//prev[pId] = -1;
 			Q[pId] = 1;
+			
 			theta[pId] = 0;
+			score[pId] = Infinity;
+			perim[pId] = 1;
 			area[pId] = Infinity;
 			
 			if(G.nodeInfo(pId).dist < smallestWeight && G.nodeInfo(pId).dist  > 0){
@@ -664,6 +674,8 @@
 			}
 		}
 		
+		// calculate the expected theta for each node relative to the start node
+		// idea is we have a direct search going counter-clockwise
 		var startTheta = G.nodeInfo(startNode).theta;
 		
 		for(var pId in G.nodes){
@@ -673,30 +685,32 @@
 				var thetaPId = G.nodeInfo(pId).theta - startTheta;
 				expectedTheta[pId] = (thetaPId >= 0) ? thetaPId : 2*Math.PI + thetaPId;
 				if(expectedTheta[pId]  == 0) expectedTheta[pId] = 2*Math.PI;
-				//expectedTheta[pId] = thetaPId;
 			}
 		}
-
+		
+		
 		theta[startNode] = 0;
 		
 		var u = startNode;
 		var startPoint = G.nodePoint(startNode);
-		var iter = 0;
+		var iter = 0; 
 		
 		while(Object.keys(Q).length != 0){	
 			u = undefined;
+			
+			// get the node to search from
 			if(iter == 0){
 				u = startNode;
 			}else{	
-				var minArea = Infinity;
+				var minScore = Infinity;
 				var uArray = [];
 				for( var v in Q ){
-					if(Math.abs(area[v]) < minArea && 
+					if(score[v] < minScore && 
 					(v != startNode || iter > 3) 
-					//&& (inRange(theta[v], expectedTheta[v], 0.05) || (iter == 1 && inRange(0,expectedTheta[v] , 0.05)) )
 					){
-						minArea = Math.abs(area[v]);
+						minScore = score[v];
 						uArray.push(v);
+						//u = v;
 					}
 				}
 				var minDist = Infinity;
@@ -707,49 +721,65 @@
 						minDist = G.nodeInfo(v).dist;
 						u = v;
 					}
-					/*if(expectedTheta[v] < minTheta){
-						minTheta = expectedTheta[v];
-						u = v;
-					}*/
+
 				}
-				delete Q[u];
+				delete Q[u]; // make sure to remove it from the queue
 			}
-			if(!isDefined(u)) break;
+			if(!isDefined(u)) break; // something went wrong!!!
+			
 			var pointU = G.nodePoint(u);
-			console.debug("Favourite: " + u + "at theta: " + theta[u] + " at area " + area[u]);
+			console.debug("Favourite: " + u + "at theta: " + theta[u] + " at score " + score[u]);
+			
+			// Iterate over neighbours and annotate minimum score
 			var found = false;
 			for(var v in G.edges[u]){ // for neighbors v of u
 				if(!isDefined(Q[v])) continue;
 				
 				var edgeTheta = G.edgeInfo(u,v).theta;
-				//console.debug("Theta: " + edgeTheta + " on edge :" + u + "->" + v);
+				var edgeDist = G.edgeInfo(u,v).dist;
+
 				var pointV = G.nodePoint(v);
-				
+				var curScore = Infinity;
 				if( inRange(edgeTheta + theta[u], expectedTheta[v] , 0.05) ||
 						(u == startNode && edgeTheta > Math.PI && iter > 4)  ){
 					found = true;
-					if(iter == 0){
+					
+					if(iter == 0){ // for first iter just assign 0s
+						score[v] = 0;
 						area[v] = 0;
+						perim[v] = edgeDist;
+						
 						theta[v] = edgeTheta + theta[u];
 						prev[v] = u;
-					}else if(iter == 1){
+						
+					}else if(iter == 1){ // for second iter use simple Green's theorem
 						var a =  (pointU[0] + startPoint[0])*(pointU[1] - startPoint[1]) + 
 						(pointU[0] + pointV[0])*(pointV[1] - pointU[1]) + 
 						(pointV[0] + startPoint[0])*(startPoint[1] - pointV[1]);
-						//a = Math.abs(a);
-						if(Math.abs(a) < Math.abs(area[v]) ){
-							theta[v] = edgeTheta + theta[u];
+						var p = perim[u] + edgeDist;
+						var s = Math.abs(a);
+						
+						if(s < score[v] ){
 							area[v] = a;
+							perim[v] = p;
+							score[v] = s;
+							
+							theta[v] = edgeTheta + theta[u];
 							prev[v] = u;
 						}
-					}else if(iter > 1 ){
+					}else if(iter > 1 ){ // for all others use previous result to calculate Green's theorem
 						var a = area[u]  - (pointU[0] + startPoint[0])*(startPoint[1] - pointU[1]) +
 						(pointU[0] + pointV[0])*(pointV[1] - pointU[1]) + 
 						(pointV[0] + startPoint[0])*(startPoint[1] - pointV[1]);
-						//a = Math.abs(a);
-						if(Math.abs(a) < Math.abs(area[v]) || area[v] == 0 && inRange(expectedTheta[v], 2*Math.PI, 0.01) ){
-							theta[v] = edgeTheta + theta[u];
+						var p = perim[u] + edgeDist;
+						var s = Math.abs(a);
+						
+						if(s < score[v] || area[v] == 0 && inRange(expectedTheta[v], 2*Math.PI, 0.01) ){
 							area[v] = a;
+							perim[v] = p;
+							score[v] = s;
+							
+							theta[v] = edgeTheta + theta[u];
 							prev[v] = u;
 						}
 						
@@ -757,23 +787,30 @@
 				}
 			}
 			
-			if(!found && iter == 0){
+			// We have a special case for radial edges (edges that are parallel to radial lines extending 
+			// from the point of interest). We usually expect the theta here to be 2PI but if we haven't found anything
+			// we will want to traverse this edge
+			if(!found){
 				for(var v in G.edges[u]){ // for neighbors v of u
 					if(!isDefined(Q[v])) continue;
 					
 					var edgeTheta = G.edgeInfo(u,v).theta;
-					
+					var edgeDist = G.edgeInfo(u,v).dist;
 					if(iter == 0 && inRange(0, edgeTheta, 0.01) ){
+						score[v] = 0;
 						area[v] = 0;
-						theta[v] = 0;
+						perim[v] = edgeDist;
+						
+						theta[v] = edgeTheta + theta[u];
 						prev[v] = u;
 					}
 				}
 			}
-			
-			
 			iter++;
 		}
+		
+		
+		
 		var point = G.nodePoint(startNode);
 		canvasCtx.beginPath();
 		canvasCtx.moveTo(point[0], point[1]);
@@ -918,11 +955,7 @@
 	}
 	
 	function inRange(a, b, range){
-		if(a != 0){
-			return (a >= (b*(1-range)) && a <= (b * (1+range)));
-		}else{
-			return a >= b-range && a <= b+range;
-		}
+		return (a >= (b - range)) && (a <= (b + range));
 	}
 
 	function initCanvas() {
